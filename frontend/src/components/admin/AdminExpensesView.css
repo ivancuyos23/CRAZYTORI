@@ -1,0 +1,98 @@
+/* --- Expense Tracker & 3-Tier Voucher Styles --- */
+.expense-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.filter-label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.tier-selector-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tier-select-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tier-select-card:hover {
+  background: #f1f5f9;
+}
+
+.tier-select-card.active {
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  padding: 9px 11px;
+}
+
+.tier-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.85rem;
+  color: #0f172a;
+  margin-bottom: 2px;
+}
+
+.tier-radio {
+  font-size: 0.9rem;
+  color: #f59e0b;
+}
+
+.tier-select-card small {
+  font-size: 0.74rem;
+  color: #64748b;
+}
+
+.preset-chips-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.preset-chip {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.preset-chip.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.form-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.form-split-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.muted-by {
+  color: #64748b;
+  font-weight: 600;
+}

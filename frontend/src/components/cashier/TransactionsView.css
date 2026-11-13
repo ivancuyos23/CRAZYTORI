@@ -1,0 +1,170 @@
+/* --- Shift Orders, Audit Cells & Thermal Receipt Modal --- */
+.order-id-cell {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.tx-mono-id {
+  font-family: monospace;
+  font-weight: 800;
+  font-size: 0.84rem;
+  color: #0f172a;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 3px 7px;
+  border-radius: 6px;
+}
+
+.serving-pill {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #0f172a;
+  font-weight: 800;
+  font-size: 0.74rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.tx-time-cell {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.25;
+}
+
+.tx-time-cell strong {
+  color: #0f172a;
+  font-size: 0.84rem;
+}
+
+.tx-time-cell small {
+  color: #64748b;
+  font-size: 0.72rem;
+}
+
+.tx-tender-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.tx-ref-note {
+  font-size: 0.7rem;
+  color: #64748b;
+  font-family: monospace;
+}
+
+.tx-amount-figure {
+  font-size: 0.95rem;
+  color: #0f172a;
+}
+
+/* Thermal Receipt Slip Modal */
+.thermal-receipt-card {
+  max-width: 380px !important;
+  text-align: left;
+}
+
+.thermal-paper {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 16px;
+  font-family: 'Courier New', Courier, monospace;
+  color: #0f172a;
+}
+
+.thermal-header {
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.thermal-header h4 {
+  margin: 0;
+  font-size: 1.15rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+}
+
+.thermal-header p {
+  margin: 2px 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+}
+
+.thermal-header small {
+  font-size: 0.7rem;
+  color: #64748b;
+}
+
+.thermal-serving-banner {
+  background: #ffffff;
+  border: 1.5px solid #0f172a;
+  border-radius: 8px;
+  padding: 8px;
+  text-align: center;
+  margin-bottom: 12px;
+}
+
+.thermal-serving-banner span {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.thermal-serving-banner h2 {
+  margin: 2px 0 0 0;
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.thermal-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 0.78rem;
+}
+
+.thermal-meta > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.thermal-divider {
+  border-top: 1px dashed #94a3b8;
+  margin: 10px 0;
+}
+
+.thermal-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.82rem;
+}
+
+.thermal-item-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.thermal-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.95rem;
+  font-weight: 800;
+  padding-top: 2px;
+}
+
+.thermal-footer-note {
+  margin: 12px 0 0 0;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #64748b;
+}

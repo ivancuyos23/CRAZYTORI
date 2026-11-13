@@ -1,0 +1,165 @@
+/* --- Daily Ingredient Usage & Portion Editor Styles --- */
+.usage-kpi-card h3 {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.saved-pill {
+  background: #ecfdf5;
+  color: #059669;
+  border: 1px solid #a7f3d0;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+/* Editable Batter Mix Pack Ratio Box */
+.batter-ratio-banner {
+  background: #f8fafc;
+  border: 1.5px solid #0f172a;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.batter-ratio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.82rem;
+  color: #0f172a;
+}
+
+.batter-ratio-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ratio-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.ratio-field input {
+  width: 72px;
+  padding: 4px 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: center;
+  margin: 0;
+}
+
+.ratio-field span {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.ratio-divider {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+/* Recipe Dish Cards */
+.recipe-editor-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: 410px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.recipe-rule-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.recipe-rule-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.recipe-rule-title strong {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.auto-batter-tag {
+  background: #fef3c7;
+  border: 1px solid #f59e0b;
+  color: #0f172a;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.recipe-inputs-grid.three-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.recipe-input-box {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.recipe-input-box label {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: #475569;
+}
+
+.recipe-input-box input {
+  width: 100%;
+  padding: 7px 8px;
+  border: 1px solid #cbd5e1;
+  border-radius: 6px;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #0f172a;
+  background: #ffffff;
+  text-align: center;
+  margin: 0;
+}
+
+.recipe-input-box input:focus {
+  border-color: #0f172a;
+  background: #fffbeb;
+  outline: none;
+}
+
+.recipe-input-box input:disabled,
+.ratio-field input:disabled {
+  background: #f1f5f9;
+  color: #64748b;
+  cursor: not-allowed;
+}

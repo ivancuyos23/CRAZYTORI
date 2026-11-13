@@ -1,0 +1,57 @@
+/* --- Menu Manager & Multi-Size Drink Styles --- */
+.menu-category-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.drink-sizes-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 12px;
+  margin-top: 4px;
+}
+
+.size-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.size-inputs-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.menu-table-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu-table-thumb {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1.1rem;
+}
+
+.menu-table-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.editing-row-highlight td {
+  background: #fffbeb !important;
+}

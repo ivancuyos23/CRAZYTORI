@@ -1,0 +1,158 @@
+/* --- DSR & Monthly P&L Financial Statement Styles --- */
+.ledger-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.ledger-section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #475569;
+}
+
+.ledger-empty {
+  background: #f8fafc;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  font-size: 0.82rem;
+  color: #64748b;
+}
+
+.mini-table-wrapper {
+  max-height: 190px;
+  overflow-y: auto;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.mini-ledger-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.mini-ledger-table th {
+  position: sticky;
+  top: 0;
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  padding: 7px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  text-align: left;
+}
+
+.mini-ledger-table td {
+  padding: 7px 10px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #0f172a;
+  background: #ffffff;
+}
+
+.ledger-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.88rem;
+  color: #334155;
+  padding: 3px 0;
+}
+
+.ledger-row strong {
+  color: #0f172a;
+}
+
+.ledger-sub {
+  display: block;
+  font-size: 0.72rem;
+  color: #64748b;
+}
+
+.ledger-val {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.subtotal-line {
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed #cbd5e1;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.expense-mini-breakdown {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.expense-mini-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #64748b;
+}
+
+/* Monthly P&L Status Banner */
+.pnl-status-card {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #0f172a;
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.pnl-status-card.status-gain { border-left-color: #10b981; }
+.pnl-status-card.status-loss { border-left-color: #dc2626; }
+
+.pnl-status-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.pnl-status-pill {
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #0f172a;
+}
+
+.pnl-margin-pill {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.pnl-main-figure {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: #0f172a;
+  margin: 6px 0 2px 0;
+}
+
+.pnl-status-caption {
+  margin: 0;
+  font-size: 0.76rem;
+  color: #64748b;
+}
