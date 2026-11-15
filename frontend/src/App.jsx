@@ -225,7 +225,7 @@ export default function App() {
 
   const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
 
-  const handleCompletePayment = async (paymentDetails) => {
+const handleCompletePayment = async (paymentDetails) => {
     const newTx = {
       id: 'TXN-' + Date.now(),
       date: new Date().toISOString(),
@@ -235,7 +235,8 @@ export default function App() {
       discount: 0,
       items: cart,
       cashierName: role,
-      referenceNo: paymentDetails.gcashRef || null
+      referenceNo: paymentDetails.gcashRef || null,
+      paymentProof: paymentDetails.gcashImage || null
     };
 
     await saveTransactionAPI(newTx);

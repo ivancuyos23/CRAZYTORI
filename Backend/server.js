@@ -54,25 +54,12 @@ app.get('/api/transactions', (req, res) => {
 });
 
 app.post('/api/transactions', (req, res) => {
-  const { id, date, servingNo, paymentMethod, total, discount, items, cashierName, referenceNo } = req.body;
-  const query = `
-    INSERT INTO transactions (id, date, servingNo, paymentMethod, total, discount, items, cashierName, referenceNo)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
+  const { id, date, servingNo, paymentMethod, total, discount, items, cashierName, referenceNo, paymentProof } = req.body;
+  const query = `INSERT INTO transactions (id, date, servingNo, paymentMethod, total, discount, items, cashierName, referenceNo, paymentProof) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
   db.run(
     query,
-    [
-      id,
-      date,
-      servingNo || 1,
-      paymentMethod,
-      total,
-      discount || 0,
-      JSON.stringify(items || []),
-      cashierName || 'Cashier',
-      referenceNo || null
-    ],
-    function(err) {
+    [id, date, servingNo || 1, paymentMethod, total, discount || 0, JSON.stringify(items || []), cashierName || 'Cashier', referenceNo || null, paymentProof || null],
+    function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ message: 'Transaction saved successfully', id });
     }

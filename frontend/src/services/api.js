@@ -1,13 +1,31 @@
 import axios from 'axios';
 
-// Automatically uses 'localhost' on your laptop, OR your laptop's Wi-Fi IP when opened on your phone!
-const currentHost = window.location.hostname || 'localhost';
-const getBaseUrl = () =>
-  localStorage.getItem('crazy_tori_server_url') || `http://${currentHost}:5000/api`;
+// Automatically points to your laptop IP when on hotspot, or falls back to phone storage
+const getBaseUrl = () => {
+  const host = window.location.hostname || 'localhost';
+  return `http://${host}:5000/api`;
+};
 
-const apiClient = axios.create({ timeout: 1500 });
+const apiClient = axios.create({ timeout: 1200 });
 
-const INITIAL_PRODUCTS = [
+const getLocal = (key, fallback) => {
+  try {
+    const raw = localStorage.getItem(key);
+    return raw ? JSON.parse(raw) : fallback;
+  } catch {
+    return fallback;
+  }
+};
+
+const setLocal = (key, value) => {
+  try {
+    localStorage.setItem(key, JSON.stringify(value));
+  } catch (e) {
+    console.error('Storage limit reached:', e);
+  }
+};
+
+const DEFAULT_PRODUCTS = [
   { id: 1, name: 'Rice Bowl - Signature', category: 'Food', price: 170, sizes: null, image: '/images/ricebowl.jfif' },
   { id: 2, name: 'Rice Bowl - Orenji', category: 'Food', price: 170, sizes: null, image: '/images/ricebowl.jfif' },
   { id: 3, name: 'Rice Bowl - Sesame', category: 'Food', price: 170, sizes: null, image: '/images/ricebowl.jfif' },
@@ -39,24 +57,26 @@ const INITIAL_PRODUCTS = [
   { id: 29, name: 'Water 500ml', category: 'Drinks', price: 30, sizes: null, image: null }
 ];
 
-// Local fallback helpers for standalone Android APK mode
-const getLocal = (key, fallback) => {
-  const raw = localStorage.getItem(key);
-  if (!raw) {
-    localStorage.setItem(key, JSON.stringify(fallback));
-    return fallback;
-  }
-  return JSON.parse(raw);
+const DEFAULT_PERMISSIONS = {
+  canVoidTransactions: false,
+  canFilterTransactionDates: false,
+  canViewDSR: false,
+  canViewUsage: false,
+  canLogExpenses: false,
+  canDeleteExpenses: false,
+  canManageMenu: false
 };
-const setLocal = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-// 1. Auth & PIN Security
+// 1. Admin PIN Authentication & Update (Works Offline on Phone)
 export const loginAdmin = async (pin) => {
   try {
-    return (await apiClient.post(`${getBaseUrl()}/login`, { pin })).data;
-  } catch {
+    const res = await apiClient.post(`${getBaseUrl()}/login`, { pin });
+    localStorage.setItem('crazy_tori_admin_pin', pin);
+    return res.data;
+  } catch (err) {
+    if (err.response && err.response.status === 401) throw new Error('Invalid PIN');
     const savedPin = localStorage.getItem('crazy_tori_admin_pin') || '1234';
-    if (String(pin) === String(savedPin)) {
+    if (pin === savedPin) {
       return { success: true, user: { username: 'Admin Owner', role: 'Admin' } };
     }
     throw new Error('Invalid PIN');
@@ -65,60 +85,74 @@ export const loginAdmin = async (pin) => {
 
 export const updateAdminPinAPI = async (currentPin, newPin) => {
   try {
-    return (await apiClient.put(`${getBaseUrl()}/login/pin`, { currentPin, newPin })).data;
-  } catch {
+    const res = await apiClient.put(`${getBaseUrl()}/users/admin-pin`, { currentPin, newPin });
+    localStorage.setItem('crazy_tori_admin_pin', newPin);
+    return res.data;
+  } catch (err) {
+    if (err.response) throw err;
     const savedPin = localStorage.getItem('crazy_tori_admin_pin') || '1234';
-    if (String(currentPin) !== String(savedPin)) {
-      throw { response: { data: { error: 'Current Admin PIN is incorrect' } } };
+    if (currentPin !== savedPin) {
+      const error = new Error('Incorrect current PIN.');
+      error.response = { data: { error: 'Incorrect current PIN.' } };
+      throw error;
     }
-    localStorage.setItem('crazy_tori_admin_pin', String(newPin));
+    localStorage.setItem('crazy_tori_admin_pin', newPin);
     return { success: true };
   }
 };
 
-// 2. Products / Menu
+// 2. Products / Menu Catalog
 export const fetchProducts = async () => {
   try {
     const data = (await apiClient.get(`${getBaseUrl()}/products`)).data;
-    setLocal('crazy_tori_products', data);
-    return data;
+    if (Array.isArray(data) && data.length > 0) {
+      setLocal('crazy_tori_products', data);
+      return data;
+    }
   } catch {
-    return getLocal('crazy_tori_products', INITIAL_PRODUCTS);
+    // Fallback to phone storage
+  }
+  const localProds = getLocal('crazy_tori_products', null);
+  if (!localProds || localProds.length === 0) {
+    setLocal('crazy_tori_products', DEFAULT_PRODUCTS);
+    return DEFAULT_PRODUCTS;
+  }
+  return localProds;
+};
+
+export const createProductAPI = async (productData) => {
+  const current = getLocal('crazy_tori_products', DEFAULT_PRODUCTS);
+  const newProd = { ...productData, id: Date.now() };
+  setLocal('crazy_tori_products', [...current, newProd]);
+  try {
+    return (await apiClient.post(`${getBaseUrl()}/products`, productData)).data;
+  } catch {
+    return newProd;
   }
 };
 
-export const createProductAPI = async (prod) => {
+export const updateProductAPI = async (id, productData) => {
+  const current = getLocal('crazy_tori_products', DEFAULT_PRODUCTS);
+  const updated = current.map(p => (p.id === id ? { ...p, ...productData, id } : p));
+  setLocal('crazy_tori_products', updated);
   try {
-    return (await apiClient.post(`${getBaseUrl()}/products`, prod)).data;
+    return (await apiClient.put(`${getBaseUrl()}/products/${id}`, productData)).data;
   } catch {
-    const list = getLocal('crazy_tori_products', INITIAL_PRODUCTS);
-    const created = { ...prod, id: Date.now() };
-    setLocal('crazy_tori_products', [...list, created]);
-    return created;
-  }
-};
-
-export const updateProductAPI = async (id, prod) => {
-  try {
-    return (await apiClient.put(`${getBaseUrl()}/products/${id}`, prod)).data;
-  } catch {
-    const list = getLocal('crazy_tori_products', INITIAL_PRODUCTS);
-    setLocal('crazy_tori_products', list.map(p => (p.id === id ? { ...p, ...prod } : p)));
-    return { message: 'Updated locally' };
+    return { id, ...productData };
   }
 };
 
 export const deleteProductAPI = async (id) => {
+  const current = getLocal('crazy_tori_products', DEFAULT_PRODUCTS);
+  setLocal('crazy_tori_products', current.filter(p => p.id !== id));
   try {
     return (await apiClient.delete(`${getBaseUrl()}/products/${id}`)).data;
   } catch {
-    const list = getLocal('crazy_tori_products', INITIAL_PRODUCTS);
-    setLocal('crazy_tori_products', list.filter(p => p.id !== id));
-    return { message: 'Deleted locally' };
+    return { success: true };
   }
 };
 
-// 3. Transactions
+// 3. Transactions / Orders
 export const fetchTransactions = async () => {
   try {
     const data = (await apiClient.get(`${getBaseUrl()}/transactions`)).data;
@@ -130,22 +164,22 @@ export const fetchTransactions = async () => {
 };
 
 export const saveTransactionAPI = async (txData) => {
+  const current = getLocal('crazy_tori_transactions', []);
+  setLocal('crazy_tori_transactions', [txData, ...current.filter(t => t.id !== txData.id)]);
   try {
     return (await apiClient.post(`${getBaseUrl()}/transactions`, txData)).data;
   } catch {
-    const list = getLocal('crazy_tori_transactions', []);
-    setLocal('crazy_tori_transactions', [txData, ...list]);
     return txData;
   }
 };
 
 export const voidTransactionAPI = async (id) => {
+  const current = getLocal('crazy_tori_transactions', []);
+  setLocal('crazy_tori_transactions', current.filter(t => t.id !== id));
   try {
     return (await apiClient.delete(`${getBaseUrl()}/transactions/${id}`)).data;
   } catch {
-    const list = getLocal('crazy_tori_transactions', []);
-    setLocal('crazy_tori_transactions', list.filter(t => t.id !== id));
-    return { id };
+    return { success: true };
   }
 };
 
@@ -161,33 +195,23 @@ export const fetchExpenses = async () => {
 };
 
 export const saveExpenseAPI = async (expData) => {
+  const current = getLocal('crazy_tori_expenses', []);
+  setLocal('crazy_tori_expenses', [expData, ...current.filter(e => e.id !== expData.id)]);
   try {
     return (await apiClient.post(`${getBaseUrl()}/expenses`, expData)).data;
   } catch {
-    const list = getLocal('crazy_tori_expenses', []);
-    setLocal('crazy_tori_expenses', [expData, ...list]);
     return expData;
   }
 };
 
 export const deleteExpenseAPI = async (id) => {
+  const current = getLocal('crazy_tori_expenses', []);
+  setLocal('crazy_tori_expenses', current.filter(e => e.id !== id));
   try {
     return (await apiClient.delete(`${getBaseUrl()}/expenses/${id}`)).data;
   } catch {
-    const list = getLocal('crazy_tori_expenses', []);
-    setLocal('crazy_tori_expenses', list.filter(e => e.id !== id));
-    return { id };
+    return { success: true };
   }
-};
-
-const DEFAULT_PERMISSIONS = {
-  canVoidTransactions: false,
-  canFilterTransactionDates: false,
-  canViewDSR: false,
-  canViewUsage: false,
-  canLogExpenses: false,
-  canDeleteExpenses: false,
-  canManageMenu: false
 };
 
 // 5. Persistent Cashier Permissions

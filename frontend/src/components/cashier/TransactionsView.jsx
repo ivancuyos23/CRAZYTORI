@@ -289,6 +289,19 @@ export default function TransactionsView({
               <div className="thermal-divider"></div>
 
               <div className="thermal-total-row">
+                {selectedReceipt.paymentProof && (
+                <div style={{ marginTop: '8px', textAlign: 'center' }}>
+                  <div className="thermal-divider"></div>
+                  <small style={{ fontWeight: 800, display: 'block', marginBottom: '4px' }}>
+                    GCASH PAYMENT PROOF
+                  </small>
+                  <img
+                    src={selectedReceipt.paymentProof}
+                    alt="GCash Proof"
+                    style={{ width: '100%', maxHeight: '220px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                  />
+                </div>
+              )}
                 <span>TOTAL</span>
                 <strong>₱{formatPeso(selectedReceipt.total)}</strong>
               </div>

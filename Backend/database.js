@@ -20,6 +20,7 @@ db.serialize(() => {
     items TEXT,
     cashierName TEXT
   )`);
+  db.run(`ALTER TABLE transactions ADD COLUMN paymentProof TEXT`, () => {});
   db.run(`ALTER TABLE transactions ADD COLUMN servingNo INTEGER`, () => {});
 
   db.run(`CREATE TABLE IF NOT EXISTS expenses (
