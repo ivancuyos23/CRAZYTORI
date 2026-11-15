@@ -6,7 +6,7 @@ const app = express();
 const PORT = 5000;
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 
 // Ensure new columns exist on existing SQLite tables without losing data
 db.serialize(() => {
@@ -165,6 +165,28 @@ app.delete('/api/products/:id', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
-  console.log(`Crazy Tori local backend server running on http://localhost:${PORT}`);
+// Get persistent permissions & settings
+app.get('/api/settings/permissions', (req, res) => {
+  db.get("SELECT value FROM settings WHERE key = 'permissions'", [], (err, row) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(row ? JSON.parse(row.value) : {});
+  });
+});
+
+// Save persistent permissions & settings
+app.put('/api/settings/permissions', (req, res) => {
+  const valueStr = JSON.stringify(req.body || {});
+  db.run(
+    `INSERT INTO settings (key, value) VALUES ('permissions', ?)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value`,
+    [valueStr],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, permissions: req.body });
+    }
+  );
+});
+
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Crazy Tori local backend server running on http://0.0.0.0:${PORT}`);
 });

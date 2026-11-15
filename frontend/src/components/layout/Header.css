@@ -1,21 +1,21 @@
-/* --- Crazy Tori Branded Header --- */
 .top-header {
   background-color: #ffb300;
   color: #111827;
-  padding: 8px 20px;
-  min-height: 56px;
+  padding: 8px 18px;
+  min-height: 54px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  border-bottom: 2px solid #111827;
+  gap: 10px;
+  border-bottom: 3px solid #0f172a;
   flex-shrink: 0;
+  z-index: 20;
 }
 
 .brand-logo-container {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   min-width: 0;
 }
 
@@ -27,7 +27,7 @@
 
 .logo-crazy,
 .logo-tori {
-  font-size: 1.3rem;
+  font-size: 1.25rem;
   font-weight: 900;
   color: #ffffff;
   letter-spacing: 0.05em;
@@ -41,7 +41,7 @@
 }
 
 .logo-tori {
-  font-size: 1.45rem;
+  font-size: 1.4rem;
 }
 
 .logo-subtext {
@@ -53,19 +53,18 @@
 }
 
 .jp-sub {
-  font-size: 0.78rem;
+  font-size: 0.76rem;
   font-weight: 800;
   color: #111827;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 .branch-sub {
-  font-size: 0.7rem;
+  font-size: 0.68rem;
   font-weight: 700;
   color: #1f2937;
 }
 
-/* --- Role Switcher Pill --- */
 .header-actions {
   display: flex;
   align-items: center;
@@ -76,11 +75,10 @@
   display: flex;
   align-items: center;
   background: #ffffff;
-  border: 1.5px solid #0f172a;
+  border: 2px solid #0f172a;
   border-radius: 999px;
-  padding: 4px 4px 4px 12px;
-  gap: 10px;
-  box-shadow: 0 2px 4px rgba(15, 23, 42, 0.1);
+  padding: 4px 4px 4px 10px;
+  gap: 8px;
 }
 
 .role-status {
@@ -98,8 +96,8 @@
 }
 
 .role-label {
-  font-size: 0.78rem;
-  font-weight: 700;
+  font-size: 0.75rem;
+  font-weight: 800;
   color: #0f172a;
   white-space: nowrap;
 }
@@ -109,18 +107,11 @@
   color: #0f172a;
   border: 1px solid #cbd5e1;
   border-radius: 999px;
-  padding: 5px 12px;
-  font-size: 0.74rem;
+  padding: 5px 10px;
+  font-size: 0.72rem;
   font-weight: 700;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.15s ease;
-}
-
-.role-action-btn:hover {
-  background: #0f172a;
-  color: #ffffff;
-  border-color: #0f172a;
 }
 
 .role-switcher-pill.is-admin {
@@ -129,7 +120,7 @@
 }
 
 .role-switcher-pill.is-admin .status-dot {
-  background-color: #f59e0b;
+  background-color: #ffb300;
 }
 
 .role-switcher-pill.is-admin .role-label {
@@ -142,25 +133,21 @@
   border-color: #334155;
 }
 
-.role-switcher-pill.is-admin .role-action-btn:hover {
-  background: #f59e0b;
-  color: #0f172a;
-  border-color: #f59e0b;
-}
-
-/* --- Responsive Bottom Navigation --- */
+/* High-Contrast Dark Bottom Navigation Bar */
 .bottom-nav {
-  min-height: 56px;
-  background: #ffffff;
-  border-top: 1px solid #e2e8f0;
+  min-height: 60px;
+  background: #0f172a;
+  border-top: 3px solid #ffb300;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  gap: 4px;
-  padding: 4px 12px;
+  gap: 6px;
+  padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
   flex-shrink: 0;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  z-index: 20;
 }
 
 .bottom-nav::-webkit-scrollbar {
@@ -168,50 +155,50 @@
 }
 
 .nav-item {
-  background: transparent;
-  border: none;
+  background: #1e293b;
+  border: 1px solid #334155;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  color: #64748b;
+  color: #94a3b8;
   cursor: pointer;
-  padding: 6px 14px;
+  padding: 6px 10px;
   border-radius: 8px;
   white-space: nowrap;
   flex: 1;
-  min-width: 78px;
+  min-width: 72px;
   transition: all 0.15s ease;
 }
 
 .nav-item span {
-  font-size: 1.1rem;
-}
-
-.nav-item:hover {
-  background: #f8fafc;
-  color: #0f172a;
+  font-size: 1rem;
 }
 
 .nav-item.active {
   color: #0f172a;
-  background: #fef3c7;
+  background: #ffb300;
+  border-color: #ffb300;
+  font-weight: 900;
 }
 
-/* Mobile Header Adjustments */
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .top-header {
-    padding: 8px 12px;
+    padding: 6px 12px;
+    min-height: 48px;
   }
-
   .logo-subtext {
-    display: none; /* Saves horizontal space on narrow phones */
+    display: none;
   }
-
   .bottom-nav {
     justify-content: flex-start;
+  }
+  .nav-item {
+    min-width: 68px;
+    padding: 5px 8px;
+    font-size: 0.68rem;
   }
 }

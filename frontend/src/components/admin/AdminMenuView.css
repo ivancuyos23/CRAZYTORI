@@ -1,4 +1,4 @@
-/* --- Menu Manager & Multi-Size Drink Styles --- */
+/* --- Menu Manager & Easy-Navigation List Styles --- */
 .menu-category-toggle {
   display: grid;
   grid-template-columns: 1fr 1fr;
@@ -26,32 +26,268 @@
   gap: 4px;
 }
 
-.menu-table-item {
+/* Image Preview & Upload Box */
+.image-manager-box {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
-.menu-table-thumb {
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  overflow: hidden;
-  background: #f1f5f9;
-  border: 1px solid #e2e8f0;
+.image-preview-frame {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   flex-shrink: 0;
-  font-size: 1.1rem;
+  font-size: 1.8rem;
 }
 
-.menu-table-thumb img {
+.image-preview-frame img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
 
-.editing-row-highlight td {
-  background: #fffbeb !important;
+.image-manager-controls {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+.image-btn-row {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.clickable-thumb {
+  cursor: pointer;
+}
+
+/* --- Right Column: Easy Navigation Filter Bar --- */
+.menu-nav-top {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 10px;
+  border-bottom: 2px solid #0f172a;
+}
+
+.menu-filter-pills {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.menu-tab-pill {
+  flex: 1;
+  min-width: 85px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: all 0.15s ease;
+}
+
+.menu-tab-pill span {
+  background: #e2e8f0;
+  color: #0f172a;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+}
+
+.menu-tab-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.menu-tab-pill.active span {
+  background: #f59e0b;
+  color: #0f172a;
+}
+
+.menu-search-box {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.menu-search-box input {
+  width: 100%;
+  padding: 9px 32px 9px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  background: #ffffff;
+  color: #0f172a;
+  margin: 0;
+  outline: none;
+}
+
+.menu-search-box input:focus {
+  border-color: #0f172a;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: #e2e8f0;
+  border: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: #475569;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --- Scrollable Menu Item Cards --- */
+.menu-cards-scroll {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 490px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding-right: 2px;
+}
+
+.menu-list-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.menu-list-card:hover {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.menu-list-card.active-edit {
+  border: 2px solid #f59e0b;
+  background: #fffbeb;
+}
+
+.menu-card-thumb {
+  position: relative;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 1.4rem;
+}
+
+.menu-card-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.thumb-cam-badge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: rgba(15, 23, 42, 0.75);
+  color: #ffffff;
+  font-size: 0.62rem;
+  padding: 1px 3px;
+  border-top-left-radius: 4px;
+}
+
+.menu-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  cursor: pointer;
+}
+
+.menu-card-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.menu-card-title-row strong {
+  font-size: 0.88rem;
+  color: #0f172a;
+}
+
+.menu-cat-tag {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #64748b;
+  background: #f1f5f9;
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+}
+
+.menu-single-price {
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: #b45309;
+}
+
+.menu-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 540px) {
+  .menu-list-card {
+    flex-wrap: wrap;
+  }
+  .menu-card-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 6px;
+    border-top: 1px dashed #e2e8f0;
+  }
+  .menu-card-actions button {
+    flex: 1;
+    text-align: center;
+  }
 }

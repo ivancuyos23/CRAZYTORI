@@ -1,8 +1,12 @@
-/* --- Admin Settings, Backups & Security Styles --- */
+/* --- Admin Settings, Backups & Security Styles (Zero Horizontal Overflow) --- */
 .settings-stack {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 14px;
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+  box-sizing: border-box;
 }
 
 .preset-btn-group {
@@ -11,33 +15,43 @@
   flex-wrap: wrap;
 }
 
+/* Cashier Access Toggle Rows */
 .permissions-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  width: 100%;
 }
 
 .permission-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 10px 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  gap: 14px;
+  gap: 12px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.permission-info {
+  flex: 1;
+  min-width: 0;
 }
 
 .permission-info strong {
   display: block;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: #0f172a;
-  margin-bottom: 2px;
+  word-wrap: break-word;
 }
 
 .permission-info p {
-  margin: 0;
-  font-size: 0.76rem;
+  margin: 2px 0 0 0;
+  font-size: 0.74rem;
   color: #64748b;
 }
 
@@ -45,8 +59,8 @@
 .toggle-switch {
   position: relative;
   display: inline-block;
-  width: 46px;
-  height: 26px;
+  width: 44px;
+  height: 24px;
   flex-shrink: 0;
 }
 
@@ -54,6 +68,7 @@
   opacity: 0;
   width: 0;
   height: 0;
+  margin: 0;
 }
 
 .toggle-slider {
@@ -68,8 +83,8 @@
 .toggle-slider:before {
   position: absolute;
   content: "";
-  height: 20px;
-  width: 20px;
+  height: 18px;
+  width: 18px;
   left: 3px;
   bottom: 3px;
   background-color: #ffffff;
@@ -87,84 +102,135 @@
   background-color: #f59e0b;
 }
 
-/* Shift & Register Controls */
+/* Register & Shift Controls */
 .shift-controls-grid {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .shift-control-box {
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
-  padding: 12px 14px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .shift-control-box strong {
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   color: #0f172a;
-}
-
-.shift-control-box p {
-  margin: 0;
-  font-size: 0.76rem;
-  color: #64748b;
 }
 
 .inline-input-row {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
+  width: 100%;
+  min-width: 0;
+  align-items: center;
 }
 
 .inline-input-row input {
   flex: 1;
-  padding: 7px 10px;
+  min-width: 0; /* Critical: prevents input from pushing card sideways */
+  width: 100%;
+  padding: 8px 10px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
+  border-radius: 8px;
   font-weight: 700;
   color: #0f172a;
+  background: #ffffff;
   margin: 0;
+  box-sizing: border-box;
 }
 
-/* Backup & CSV Export Rows */
-.settings-helper-text {
-  margin: 0;
-  font-size: 0.8rem;
-  color: #475569;
-  line-height: 1.4;
+.inline-input-row button {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
+/* Backup & Export Rows (PDF & Excel) */
 .backup-actions-list {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  width: 100%;
 }
 
 .backup-action-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
   border-radius: 10px;
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.backup-action-item > div:first-child {
+  flex: 1;
+  min-width: 140px;
 }
 
 .backup-action-item strong {
   display: block;
-  font-size: 0.86rem;
+  font-size: 0.85rem;
   color: #0f172a;
 }
 
 .backup-action-item small {
-  font-size: 0.75rem;
+  display: block;
+  font-size: 0.74rem;
   color: #64748b;
+  margin-top: 2px;
+}
+
+.export-choice-btns {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.export-choice-btns .btn-primary-amber,
+.export-choice-btns .btn-secondary-sm {
+  padding: 7px 12px;
+  font-size: 0.78rem;
+  margin: 0;
+  white-space: nowrap;
+}
+
+/* Admin PIN Form Split Row */
+.form-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+  min-width: 0;
+}
+
+.form-split-row > div {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  min-width: 0;
+}
+
+.form-split-row input {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
 }
 
 .pin-alert {
@@ -184,4 +250,29 @@
   background: #fef2f2;
   color: #dc2626;
   border: 1px solid #fecaca;
+}
+
+/* Mobile & Small Tablet Adjustments */
+@media (max-width: 640px) {
+  .backup-action-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .export-choice-btns {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .export-choice-btns button {
+    width: 100%;
+    text-align: center;
+    justify-content: center;
+  }
+
+  .form-split-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }

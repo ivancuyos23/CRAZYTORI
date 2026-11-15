@@ -1,3 +1,31 @@
+/* --- Header Month / Day / Year Dropdowns --- */
+.header-dropdown-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.header-select {
+  padding: 7px 10px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background-color: #ffffff;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  width: auto;
+  margin: 0;
+  transition: border-color 0.15s ease;
+}
+
+.header-select:hover,
+.header-select:focus {
+  border-color: #0f172a;
+}
+
 /* --- DSR & Monthly P&L Financial Statement Styles --- */
 .ledger-section {
   display: flex;
@@ -155,4 +183,100 @@
   margin: 0;
   font-size: 0.76rem;
   color: #64748b;
+}
+/* --- Print / Export Popup Modal Styles --- */
+.print-options-modal {
+  text-align: left;
+  max-width: 380px;
+  gap: 14px;
+}
+
+.print-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.print-option-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.print-option-group label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  margin: 0;
+}
+
+.format-choice-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.format-choice-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 10px;
+  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  background: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.format-choice-btn span {
+  font-size: 1.4rem;
+}
+
+.format-choice-btn strong {
+  font-size: 0.85rem;
+}
+
+.format-choice-btn.active {
+  border: 2px solid #0f172a;
+  background: #fef3c7;
+}
+
+.paper-size-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.paper-size-btn {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.paper-size-btn.active {
+  border: 2px solid #0f172a;
+  background: #fef3c7;
+  font-weight: 800;
+}
+
+@media (max-width: 600px) {
+  .header-dropdown-group {
+    width: 100%;
+    display: flex;
+  }
+  .header-select {
+    flex: 1;
+    padding: 7px 6px;
+    font-size: 0.78rem;
+  }
 }

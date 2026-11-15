@@ -1,65 +1,83 @@
 import React from 'react';
+import { resolveProductImage } from '../admin/AdminMenuView';
 import './CartSidebar.css';
 
-import riceBowlImg from '../../assets/images/ricebowl.jfif';
-import snackBoxImg from '../../assets/images/snackbox.jfif';
-import spamMusubiImg from '../../assets/images/spamusubi.jpg';
-
 export default function CartSidebar({
-  cart,
+  cart = [],
   updateQty,
-  subtotal,
+  subtotal = 0,
   servingNo = 1,
   setServingNo,
   processCheckout
 }) {
-  const getCartItemImage = (productName) => {
-    const name = productName.toLowerCase();
-    if (name.includes('rice bowl') || name.includes('katsudon')) return riceBowlImg;
-    if (name.includes('snack box')) return snackBoxImg;
-    if (name.includes('spamusubi')) return spamMusubiImg;
-    return null;
-  };
+  const totalItems = cart.reduce((sum, item) => sum + (item.qty || item.quantity || 1), 0);
 
   return (
     <div className="cart-sidebar">
       <div className="cart-header">
-        <h3>Current Order</h3>
-        <span className="cart-count-badge">
-          {cart.reduce((sum, item) => sum + item.qty, 0)} items
-        </span>
+        <div className="cart-title-group">
+          <h3>Current Order</h3>
+          <span className="cart-count-badge">{totalItems} items</span>
+        </div>
+
+        <div className="serving-selector-pill">
+          <span>🍽️</span>
+          <select
+            value={servingNo}
+            onChange={e => setServingNo && setServingNo(Number(e.target.value))}
+            aria-label="Serving Number"
+          >
+            {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
+              <option key={num} value={num}>
+                Serving #{num}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       <div className="cart-items-list">
         {cart.length === 0 ? (
           <div className="empty-cart">
             <span className="empty-cart-icon">🛒</span>
-            <p>Your order list is empty</p>
-            <span className="empty-subtext">Tap items from the menu to add them</span>
+            <p>No items added</p>
           </div>
         ) : (
-          cart.map((item) => {
-            const itemImage = getCartItemImage(item.name);
+          cart.map((item, index) => {
+            const itemImage = resolveProductImage(item);
+            const qty = item.qty || item.quantity || 1;
             return (
-              <div key={item.cartKey} className="cart-item-row">
+              <div key={item.cartKey || index} className="cart-item-row">
                 <div className="cart-item-thumb">
                   {itemImage ? (
                     <img src={itemImage} alt={item.name} />
                   ) : (
-                    <span>🥤</span>
+                    <span>{item.category === 'Drinks' ? '🥤' : '🍱'}</span>
                   )}
                 </div>
 
                 <div className="cart-item-details">
                   <h4>{item.name}</h4>
-                  {item.size && <span className="cart-item-size">Size: {item.size}</span>}
-                  <span className="cart-item-price">₱{item.price}</span>
+                  <div className="cart-item-meta">
+                    {item.size && <span className="cart-item-size">{item.size}</span>}
+                    <span className="cart-item-price">₱{item.price}</span>
+                  </div>
                 </div>
 
                 <div className="cart-item-controls">
-                  <button onClick={() => updateQty(item.cartKey, -1)}>-</button>
-                  <span>{item.qty}</span>
-                  <button onClick={() => updateQty(item.cartKey, 1)}>+</button>
+                  <button
+                    type="button"
+                    onClick={() => updateQty(item.cartKey || item.name, -1)}
+                  >
+                    −
+                  </button>
+                  <span>{qty}</span>
+                  <button
+                    type="button"
+                    onClick={() => updateQty(item.cartKey || item.name, 1)}
+                  >
+                    +
+                  </button>
                 </div>
               </div>
             );
@@ -68,41 +86,18 @@ export default function CartSidebar({
       </div>
 
       <div className="cart-footer">
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.85rem', marginBottom: '6px' }}>
-          <span style={{ fontWeight: 700, color: '#0f172a' }}>🍽️ Serving Number:</span>
-          <select
-            value={servingNo}
-            onChange={(e) => setServingNo(Number(e.target.value))}
-            style={{
-              padding: '4px 10px',
-              borderRadius: '6px',
-              border: '1.5px solid #0f172a',
-              background: '#fffbeb',
-              fontSize: '0.85rem',
-              fontWeight: 800,
-              color: '#0f172a',
-              width: 'auto',
-              margin: 0,
-              cursor: 'pointer'
-            }}
-          >
-            {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
-              <option key={num} value={num}>#{num}</option>
-            ))}
-          </select>
-        </div>
-
         <div className="subtotal-row">
-          <span>Total Amount:</span>
+          <span className="subtotal-label">Total</span>
           <span className="subtotal-amount">₱{subtotal.toFixed(2)}</span>
         </div>
 
         <button
+          type="button"
           className="proceed-pay-btn"
           disabled={cart.length === 0}
           onClick={processCheckout}
         >
-          PROCEED TO PAY
+          Proceed to Pay
         </button>
       </div>
     </div>

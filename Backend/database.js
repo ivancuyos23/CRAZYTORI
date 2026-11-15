@@ -98,6 +98,26 @@ db.serialize(() => {
       }
     });
   });
+
+  // 5. Persistent Store Settings Table (Permissions, Float, Serving No)
+  db.run(`CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT
+  )`, () => {
+    const defaultPermissions = JSON.stringify({
+      canVoidTransactions: false,
+      canFilterTransactionDates: false,
+      canViewDSR: false,
+      canViewUsage: false,
+      canLogExpenses: false,
+      canDeleteExpenses: false,
+      canManageMenu: false
+    });
+    db.run(
+      `INSERT OR IGNORE INTO settings (key, value) VALUES ('permissions', ?)`,
+      [defaultPermissions]
+    );
+  });
 });
 
 module.exports = db;

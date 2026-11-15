@@ -1,40 +1,34 @@
-/* --- Expense Tracker & 3-Tier Voucher Styles --- */
-.expense-filter-bar {
+/* --- Expenses Form & Sleek Single-Line Ledger Styles --- */
+.expense-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.filter-label {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: #475569;
+.expense-header-actions .admin-date-input {
+  width: auto;
+  margin: 0;
 }
 
 .tier-selector-stack {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
 }
 
 .tier-select-card {
   background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
   padding: 10px 12px;
   text-align: left;
   cursor: pointer;
   transition: all 0.15s ease;
 }
 
-.tier-select-card:hover {
-  background: #f1f5f9;
-}
-
 .tier-select-card.active {
-  background: #ffffff;
-  border: 2px solid #0f172a;
-  padding: 9px 11px;
+  background: #fef3c7;
+  border-color: #0f172a;
 }
 
 .tier-card-top {
@@ -43,17 +37,13 @@
   align-items: center;
   font-size: 0.85rem;
   color: #0f172a;
-  margin-bottom: 2px;
 }
 
 .tier-radio {
-  font-size: 0.9rem;
-  color: #f59e0b;
-}
-
-.tier-select-card small {
-  font-size: 0.74rem;
-  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: #b45309;
 }
 
 .preset-chips-row {
@@ -67,10 +57,10 @@
   background: #f1f5f9;
   border: 1px solid #cbd5e1;
   color: #334155;
-  padding: 4px 10px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
 }
 
@@ -80,19 +70,291 @@
   border-color: #0f172a;
 }
 
-.form-split-row {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-}
-
-.form-split-row > div {
+/* --- Right Column: Filter Bar --- */
+.expense-nav-top {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding-bottom: 12px;
+  border-bottom: 1.5px solid #e2e8f0;
+}
+
+.expense-filter-pills {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
-.muted-by {
+.exp-tab-pill {
+  padding: 7px 6px;
+  border-radius: 8px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.exp-tab-pill span {
+  background: #e2e8f0;
+  color: #0f172a;
+  padding: 1px 6px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+}
+
+.exp-tab-pill.active {
+  background: #0f172a;
+  color: #ffffff;
+  border-color: #0f172a;
+}
+
+.exp-tab-pill.active span {
+  background: #f59e0b;
+  color: #0f172a;
+}
+
+.expense-search-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+.expense-search-box {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  min-width: 0;
+}
+
+.expense-search-box input {
+  width: 100%;
+  padding: 8px 52px 8px 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  background: #ffffff;
+  color: #0f172a;
+  margin: 0;
+  outline: none;
+}
+
+.expense-search-box input:focus {
+  border-color: #0f172a;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 6px;
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  padding: 3px 7px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #475569;
+  cursor: pointer;
+}
+
+.day-filter-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.day-filter-wrap .admin-date-input {
+  width: auto;
+  margin: 0;
+}
+
+/* --- Compact Single-Line Expense Ledger --- */
+.expense-ledger-list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #ffffff;
+  max-height: 440px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.exp-ledger-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  border-left: 4px solid #cbd5e1;
+  text-align: left;
+  transition: background 0.12s ease;
+}
+
+.exp-ledger-row:last-child {
+  border-bottom: none;
+}
+
+.exp-ledger-row:hover {
+  background: #f8fafc;
+}
+
+/* Subtle Left Color Indicator per Category Tier */
+.exp-ledger-row.tier-daily {
+  border-left-color: #f59e0b;
+}
+
+.exp-ledger-row.tier-overhead {
+  border-left-color: #0f172a;
+}
+
+.exp-ledger-row.tier-major {
+  border-left-color: #2563eb;
+}
+
+.exp-ledger-row.active-edit {
+  background: #fffbeb;
+  border-left-color: #d97706;
+}
+
+/* Left Side: Item Title & Date/Category Subline */
+.exp-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  gap: 2px;
+  cursor: pointer;
+}
+
+.exp-row-title {
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #0f172a;
+  text-align: left;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.exp-row-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
   color: #64748b;
   font-weight: 600;
+}
+
+.exp-row-date {
+  color: #475569;
+  font-weight: 700;
+}
+
+.exp-row-dot {
+  color: #cbd5e1;
+}
+
+.exp-row-cat {
+  color: #64748b;
+}
+
+/* Right Side: Amount & Buttons on One Line */
+.exp-row-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.exp-row-amount {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: #dc2626;
+  white-space: nowrap;
+}
+
+.exp-row-actions {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.exp-btn-edit,
+.exp-btn-del {
+  padding: 5px 9px;
+  border-radius: 6px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.exp-btn-edit {
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1px solid #cbd5e1;
+}
+
+.exp-btn-edit:hover {
+  background: #e2e8f0;
+}
+
+.exp-btn-del {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.exp-btn-del:hover {
+  background: #fee2e2;
+}
+
+/* Mobile Adjustments */
+@media (max-width: 560px) {
+  .expense-filter-pills {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .expense-search-row {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .day-filter-wrap {
+    width: 100%;
+  }
+
+  .day-filter-wrap .admin-date-input {
+    flex: 1;
+  }
+
+  .exp-ledger-row {
+    padding: 9px 10px;
+    gap: 8px;
+  }
+
+  .exp-row-right {
+    gap: 6px;
+  }
+
+  .exp-row-amount {
+    font-size: 0.85rem;
+  }
+
+  .exp-btn-edit,
+  .exp-btn-del {
+    padding: 4px 7px;
+    font-size: 0.7rem;
+  }
 }

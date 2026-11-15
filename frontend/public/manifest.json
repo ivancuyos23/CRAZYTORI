@@ -1,0 +1,16 @@
+{
+  "short_name": "Crazy Tori POS",
+  "name": "Crazy Tori - CDU Branch POS",
+  "icons": [
+    {
+      "src": "/vite.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#f8fafc",
+  "theme_color": "#ffb300",
+  "display": "standalone",
+  "orientation": "any"
+}

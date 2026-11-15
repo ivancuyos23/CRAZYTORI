@@ -1,27 +1,44 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import { exportExpensesReport } from '../../services/exportHelper';
 import './AdminViews.css';
 import './AdminExpensesView.css';
 
 const EXPENSE_TIERS = [
   {
     value: 'Store-Level Daily (Ingredients, Packaging, Supplies)',
-    shortLabel: 'Store-Level Daily',
-    sub: 'Ingredients, packaging, kitchen supplies',
-    presets: ['Chicken & Ingredients', 'Packaging & Cups', 'Cooking Oil', 'Ice & Drinks Stock', 'Cleaning Supplies']
+    shortKey: 'Store-Level Daily',
+    shortLabel: 'Daily Store',
+    tierClass: 'tier-daily',
+    presets: ['Chicken & Ingredients', 'Packaging & Cups', 'Cooking Oil', 'Ice & Drinks', 'Supplies']
   },
   {
     value: 'Fixed Monthly Overhead (Rent, Electricity, Water, Internet)',
-    shortLabel: 'Fixed Monthly Overhead',
-    sub: 'Rent, electricity, water, internet bills',
-    presets: ['Monthly Store Rent', 'Electricity Bill', 'Water Bill', 'Internet Subscription']
+    shortKey: 'Fixed Monthly Overhead',
+    shortLabel: 'Fixed Overhead',
+    tierClass: 'tier-overhead',
+    presets: ['Store Rent', 'Electricity', 'Water', 'Internet']
   },
   {
     value: 'Major Operational (Commissary, Staff & Supervisor Salaries)',
-    shortLabel: 'Major Operational',
-    sub: 'Commissary deliveries & staff payroll',
-    presets: ['Commissary Payment', 'Staff Salaries', 'Supervisor / Manager Salary', 'Equipment Maintenance']
+    shortKey: 'Major Operational',
+    shortLabel: 'Major Ops',
+    tierClass: 'tier-major',
+    presets: ['Commissary', 'Staff Salary', 'Supervisor Salary', 'Maintenance']
   }
 ];
+
+const PAPER_SIZES = [
+  { value: 'A4', label: 'A4 Paper' },
+  { value: 'Letter', label: 'Short Bond (Letter)' },
+  { value: 'Legal', label: 'Long Bond (Legal)' },
+  { value: '80mm', label: '80mm Thermal Receipt' }
+];
+
+const formatPeso = (num) =>
+  Number(num || 0).toLocaleString('en-US', {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  });
 
 export default function AdminExpensesView({
   expenses = [],
@@ -30,29 +47,68 @@ export default function AdminExpensesView({
   onSaveExpense,
   onDeleteExpense
 }) {
+  const formCardRef = useRef(null);
+
   const today = new Date().toISOString().split('T')[0];
   const currentMonth = new Date().toISOString().slice(0, 7);
 
-  // Form States
+  // Form State
+  const [editingId, setEditingId] = useState(null);
   const [date, setDate] = useState(today);
   const [category, setCategory] = useState(EXPENSE_TIERS[0].value);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
 
-  // Audit Table Filter States
+  // Filter State
   const [filterMonth, setFilterMonth] = useState(currentMonth);
+  const [filterDay, setFilterDay] = useState('');
   const [filterTier, setFilterTier] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Print Modal State
+  const [showPrintModal, setShowPrintModal] = useState(false);
+  const [exportFormat, setExportFormat] = useState('pdf');
+  const [paperSize, setPaperSize] = useState('A4');
+
   const activeTierObj = EXPENSE_TIERS.find(t => t.value === category) || EXPENSE_TIERS[0];
   const canDelete = role === 'Admin' || permissions.canDeleteExpenses;
+
+  const getTierInfo = (catString = '') => {
+    return (
+      EXPENSE_TIERS.find(t => catString.startsWith(t.shortKey)) || {
+        shortLabel: 'Expense',
+        tierClass: 'tier-daily'
+      }
+    );
+  };
+
+  const startEdit = (exp) => {
+    setEditingId(exp.id);
+    setDate(exp.date ? exp.date.split('T')[0] : today);
+    setCategory(exp.category || EXPENSE_TIERS[0].value);
+    setDescription(exp.description || '');
+    setAmount(String(exp.amount || ''));
+    formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const resetForm = () => {
+    setEditingId(null);
+    setDate(today);
+    setCategory(EXPENSE_TIERS[0].value);
+    setDescription('');
+    setAmount('');
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!description.trim() || !amount) return;
 
+    if (editingId && onDeleteExpense) {
+      await onDeleteExpense(editingId);
+    }
+
     await onSaveExpense({
-      id: 'EXP-' + Date.now(),
+      id: editingId || 'EXP-' + Date.now(),
       date,
       category,
       description: description.trim(),
@@ -60,93 +116,97 @@ export default function AdminExpensesView({
       loggedBy: role
     });
 
-    setDescription('');
-    setAmount('');
+    resetForm();
   };
 
-  // Monthly KPI Calculations (Based on selected filterMonth)
+  // Monthly & Filtered Calculations
   const monthExpenses = expenses.filter(e => e.date && e.date.startsWith(filterMonth));
-  const totalDailyTier = monthExpenses
-    .filter(e => e.category && e.category.startsWith('Store-Level Daily'))
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const totalOverheadTier = monthExpenses
-    .filter(e => e.category && e.category.startsWith('Fixed Monthly Overhead'))
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
-  const totalMajorTier = monthExpenses
-    .filter(e => e.category && e.category.startsWith('Major Operational'))
-    .reduce((sum, e) => sum + Number(e.amount || 0), 0);
+
+  const dailyList = monthExpenses.filter(e => e.category && e.category.startsWith('Store-Level Daily'));
+  const overheadList = monthExpenses.filter(e => e.category && e.category.startsWith('Fixed Monthly Overhead'));
+  const majorList = monthExpenses.filter(e => e.category && e.category.startsWith('Major Operational'));
+
+  const totalDailyTier = dailyList.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const totalOverheadTier = overheadList.reduce((s, e) => s + Number(e.amount || 0), 0);
+  const totalMajorTier = majorList.reduce((s, e) => s + Number(e.amount || 0), 0);
   const totalMonthOutflow = totalDailyTier + totalOverheadTier + totalMajorTier;
 
-  // Filtered Table Rows
   const filteredExpenses = monthExpenses.filter(exp => {
     const matchesTier = filterTier === 'All' || (exp.category && exp.category.startsWith(filterTier));
+    const matchesDay = !filterDay || (exp.date && exp.date.startsWith(filterDay));
     const matchesSearch =
       !searchQuery ||
       (exp.description && exp.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
       (exp.category && exp.category.toLowerCase().includes(searchQuery.toLowerCase()));
-    return matchesTier && matchesSearch;
+    return matchesTier && matchesDay && matchesSearch;
   });
 
-  const filteredTotal = filteredExpenses.reduce((sum, e) => sum + Number(e.amount || 0), 0);
+  const filteredTotal = filteredExpenses.reduce((s, e) => s + Number(e.amount || 0), 0);
+
+  const handleConfirmPrint = () => {
+    exportExpensesReport(filteredExpenses, exportFormat, paperSize);
+    setShowPrintModal(false);
+  };
 
   return (
     <div className="admin-page-container">
-      {/* Top Header & Month Selector */}
+      {/* Top Header */}
       <div className="admin-header-bar">
-        <div>
-          <h2>Store Expense & Overhead Management</h2>
-          <p className="admin-subtitle">
-            Strictly categorized into Store-Level Daily, Fixed Overhead, and Major Operational costs
-          </p>
-        </div>
-        <div className="expense-filter-bar">
-          <span className="filter-label">Viewing Month:</span>
+        <h2>Expenses</h2>
+        <div className="expense-header-actions">
           <input
             type="month"
             value={filterMonth}
-            onChange={e => setFilterMonth(e.target.value)}
+            onChange={e => {
+              setFilterMonth(e.target.value);
+              setFilterDay('');
+            }}
             className="admin-date-input"
           />
+          <button
+            type="button"
+            className="btn-primary-amber"
+            onClick={() => setShowPrintModal(true)}
+          >
+            Print
+          </button>
         </div>
       </div>
 
-      {/* 4-Card Monthly Expense KPI Summary */}
+      {/* 4 KPI Summary Cards */}
       <div className="expense-kpi-grid">
         <div className="admin-kpi-card">
-          <span>Store-Level Daily</span>
-          <h3>₱{totalDailyTier.toFixed(2)}</h3>
-          <small className="kpi-sub">Ingredients & supplies</small>
+          <span>Daily Store</span>
+          <h3>₱{formatPeso(totalDailyTier)}</h3>
         </div>
         <div className="admin-kpi-card">
-          <span>Fixed Monthly Overhead</span>
-          <h3>₱{totalOverheadTier.toFixed(2)}</h3>
-          <small className="kpi-sub">Rent, power, water, internet</small>
+          <span>Fixed Overhead</span>
+          <h3>₱{formatPeso(totalOverheadTier)}</h3>
         </div>
         <div className="admin-kpi-card">
-          <span>Major Operational</span>
-          <h3>₱{totalMajorTier.toFixed(2)}</h3>
-          <small className="kpi-sub">Commissary & staff payroll</small>
+          <span>Major Ops</span>
+          <h3>₱{formatPeso(totalMajorTier)}</h3>
         </div>
         <div className="admin-kpi-card kpi-highlight-outflow">
-          <span>Total Outflow ({filterMonth})</span>
-          <h3 className="text-danger">-₱{totalMonthOutflow.toFixed(2)}</h3>
-          <small className="kpi-sub">{monthExpenses.length} recorded entries</small>
+          <span>Total ({filterMonth})</span>
+          <h3 className="text-danger">-₱{formatPeso(totalMonthOutflow)}</h3>
         </div>
       </div>
 
       <div className="admin-two-col">
-        {/* LEFT COLUMN: Log New Expense Form */}
-        <div className="admin-card report-sheet">
+        {/* LEFT COLUMN: ADD / EDIT EXPENSE FORM */}
+        <div ref={formCardRef} className="admin-card report-sheet">
           <div className="report-sheet-header">
-            <div>
-              <span className="report-tag">NEW VOUCHER ENTRY</span>
-              <h3>Record Store Expense</h3>
-            </div>
-            <span className="ledger-badge">Logged by: {role}</span>
+            <h3>{editingId ? `Edit: ${description}` : 'Add Expense'}</h3>
+            {editingId && (
+              <button type="button" className="btn-secondary-sm" onClick={resetForm}>
+                Cancel
+              </button>
+            )}
           </div>
 
           <form onSubmit={handleSubmit} className="admin-form">
-            <label>1. Select Expense Category Tier</label>
+            <label>Category</label>
             <div className="tier-selector-stack">
               {EXPENSE_TIERS.map(tier => {
                 const isSelected = category === tier.value;
@@ -159,15 +219,14 @@ export default function AdminExpensesView({
                   >
                     <div className="tier-card-top">
                       <strong>{tier.shortLabel}</strong>
-                      <span className="tier-radio">{isSelected ? '●' : '○'}</span>
+                      <span className="tier-radio">{isSelected ? 'Selected' : ''}</span>
                     </div>
-                    <small>{tier.sub}</small>
                   </button>
                 );
               })}
             </div>
 
-            <label style={{ marginTop: '6px' }}>2. Particular / Description</label>
+            <label>Item / Description</label>
             <div className="preset-chips-row">
               {activeTierObj.presets.map(preset => (
                 <button
@@ -176,13 +235,13 @@ export default function AdminExpensesView({
                   className={`preset-chip ${description === preset ? 'active' : ''}`}
                   onClick={() => setDescription(preset)}
                 >
-                  + {preset}
+                  {preset}
                 </button>
               ))}
             </div>
             <input
               type="text"
-              placeholder="Or type custom expense description..."
+              placeholder="Enter expense description..."
               value={description}
               onChange={e => setDescription(e.target.value)}
               required
@@ -190,7 +249,7 @@ export default function AdminExpensesView({
 
             <div className="form-split-row">
               <div>
-                <label>3. Amount (₱)</label>
+                <label>Amount (₱)</label>
                 <input
                   type="number"
                   step="any"
@@ -202,7 +261,7 @@ export default function AdminExpensesView({
                 />
               </div>
               <div>
-                <label>4. Expense Date</label>
+                <label>Date</label>
                 <input
                   type="date"
                   value={date}
@@ -212,103 +271,238 @@ export default function AdminExpensesView({
               </div>
             </div>
 
-            <button type="submit" className="btn-primary-amber">
-              + Save Expense Entry
-            </button>
+            <div className="form-btn-row" style={{ marginTop: '6px' }}>
+              <button type="submit" className="btn-primary-amber" style={{ flex: 1 }}>
+                {editingId ? 'Save Changes' : 'Save Expense'}
+              </button>
+            </div>
           </form>
         </div>
 
-        {/* RIGHT COLUMN: Expense Audit Log Table */}
+        {/* RIGHT COLUMN: COMPACT SINGLE-ROW EXPENSE LEDGER */}
         <div className="admin-card report-sheet">
-          <div className="report-sheet-header">
-            <div>
-              <span className="report-tag">EXPENSE LEDGER</span>
-              <h3>Audit Log ({filteredExpenses.length} Entries)</h3>
+          <div className="expense-nav-top">
+            <div className="expense-filter-pills">
+              <button
+                type="button"
+                className={`exp-tab-pill ${filterTier === 'All' ? 'active' : ''}`}
+                onClick={() => setFilterTier('All')}
+              >
+                All <span>{monthExpenses.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`exp-tab-pill ${filterTier === 'Store-Level Daily' ? 'active' : ''}`}
+                onClick={() => setFilterTier('Store-Level Daily')}
+              >
+                Daily <span>{dailyList.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`exp-tab-pill ${filterTier === 'Fixed Monthly Overhead' ? 'active' : ''}`}
+                onClick={() => setFilterTier('Fixed Monthly Overhead')}
+              >
+                Overhead <span>{overheadList.length}</span>
+              </button>
+              <button
+                type="button"
+                className={`exp-tab-pill ${filterTier === 'Major Operational' ? 'active' : ''}`}
+                onClick={() => setFilterTier('Major Operational')}
+              >
+                Major <span>{majorList.length}</span>
+              </button>
             </div>
 
-            <div className="audit-controls-row">
-              <select
-                value={filterTier}
-                onChange={e => setFilterTier(e.target.value)}
-                className="audit-filter-select"
-              >
-                <option value="All">All 3 Tiers</option>
-                <option value="Store-Level Daily">Store-Level Daily</option>
-                <option value="Fixed Monthly Overhead">Fixed Overhead</option>
-                <option value="Major Operational">Major Operational</option>
-              </select>
+            <div className="expense-search-row">
+              <div className="expense-search-box">
+                <input
+                  type="text"
+                  placeholder="Search expense..."
+                  value={searchQuery}
+                  onChange={e => setSearchQuery(e.target.value)}
+                />
+                {searchQuery && (
+                  <button
+                    type="button"
+                    className="clear-search-btn"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
 
-              <input
-                type="text"
-                placeholder="Search description..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                className="audit-search-input"
-              />
+              <div className="day-filter-wrap">
+                <input
+                  type="date"
+                  value={filterDay}
+                  onChange={e => setFilterDay(e.target.value)}
+                  className="admin-date-input"
+                  title="Filter by date"
+                />
+                {filterDay && (
+                  <button
+                    type="button"
+                    className="btn-secondary-sm"
+                    onClick={() => setFilterDay('')}
+                  >
+                    All
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 
-          <div className="audit-table-scroll">
-            <table className="admin-table">
-              <thead>
-                <tr>
-                  <th>Date</th>
-                  <th>Category Tier</th>
-                  <th>Particular / Description</th>
-                  <th>By</th>
-                  <th className="text-right">Amount</th>
-                  {canDelete && <th></th>}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredExpenses.length === 0 ? (
-                  <tr>
-                    <td colSpan={canDelete ? 6 : 5} className="empty-row">
-                      No expense entries match this filter for {filterMonth}.
-                    </td>
-                  </tr>
-                ) : (
-                  filteredExpenses.map(exp => (
-                    <tr key={exp.id}>
-                      <td>{exp.date ? exp.date.split('T')[0] : '-'}</td>
-                      <td>
-                        <span className="method-badge">
-                          {exp.category ? exp.category.split(' (')[0] : 'Expense'}
-                        </span>
-                      </td>
-                      <td><strong>{exp.description}</strong></td>
-                      <td><small className="muted-by">{exp.loggedBy || 'Admin'}</small></td>
-                      <td className="text-right text-danger">
-                        <strong>-₱{Number(exp.amount || 0).toFixed(2)}</strong>
-                      </td>
-                      {canDelete && (
-                        <td className="text-right">
+          {/* Clean Ledger List */}
+          <div className="expense-ledger-list">
+            {filteredExpenses.length === 0 ? (
+              <div className="ledger-empty">No matching expenses found.</div>
+            ) : (
+              filteredExpenses.map(exp => {
+                const tierInfo = getTierInfo(exp.category);
+                const isEditing = editingId === exp.id;
+                const rawDate = exp.date ? exp.date.split('T')[0] : '';
+                const formattedDate = rawDate
+                  ? new Date(rawDate + 'T00:00:00').toLocaleDateString('en-US', {
+                      month: 'short',
+                      day: 'numeric'
+                    })
+                  : '—';
+
+                return (
+                  <div
+                    key={exp.id}
+                    className={`exp-ledger-row ${tierInfo.tierClass} ${isEditing ? 'active-edit' : ''}`}
+                  >
+                    {/* Left: Strictly Left-Aligned Title + Sub-meta */}
+                    <div className="exp-row-main" onClick={() => startEdit(exp)}>
+                      <span className="exp-row-title">{exp.description}</span>
+                      <div className="exp-row-sub">
+                        <span className="exp-row-date">{formattedDate}</span>
+                        <span className="exp-row-dot">•</span>
+                        <span className="exp-row-cat">{tierInfo.shortLabel}</span>
+                      </div>
+                    </div>
+
+                    {/* Right: Formatted Amount + Compact Action Buttons */}
+                    <div className="exp-row-right">
+                      <span className="exp-row-amount">
+                        -₱{formatPeso(exp.amount)}
+                      </span>
+
+                      <div className="exp-row-actions">
+                        <button
+                          type="button"
+                          className="exp-btn-edit"
+                          onClick={() => startEdit(exp)}
+                        >
+                          Edit
+                        </button>
+                        {canDelete && (
                           <button
-                            className="btn-danger-sm"
-                            onClick={() => onDeleteExpense(exp.id)}
+                            type="button"
+                            className="exp-btn-del"
+                            onClick={() =>
+                              window.confirm(`Delete "${exp.description}"?`) &&
+                              onDeleteExpense(exp.id)
+                            }
                           >
                             Delete
                           </button>
-                        </td>
-                      )}
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })
+            )}
           </div>
 
+          {/* Bottom Total Bar */}
           <div className="ledger-total-box">
-            <div>
-              <span className="ledger-total-label">FILTERED EXPENSE TOTAL</span>
-              <small>Showing {filteredExpenses.length} of {monthExpenses.length} entries in {filterMonth}</small>
-            </div>
+            <span className="ledger-total-label">
+              TOTAL ({filteredExpenses.length} ITEMS)
+            </span>
             <div className="ledger-total-figure text-danger">
-              -₱{filteredTotal.toFixed(2)}
+              -₱{formatPeso(filteredTotal)}
             </div>
           </div>
         </div>
       </div>
+
+      {/* Print / Export Modal */}
+      {showPrintModal && (
+        <div className="modal-backdrop" onClick={() => setShowPrintModal(false)}>
+          <div className="modal-card print-options-modal" onClick={e => e.stopPropagation()}>
+            <div className="print-modal-header">
+              <h3>Print Expenses ({filteredExpenses.length})</h3>
+              <button
+                type="button"
+                className="close-x-btn"
+                onClick={() => setShowPrintModal(false)}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="print-option-group">
+              <label>1. Choose Format</label>
+              <div className="format-choice-grid">
+                <button
+                  type="button"
+                  className={`format-choice-btn ${exportFormat === 'pdf' ? 'active' : ''}`}
+                  onClick={() => setExportFormat('pdf')}
+                >
+                  <strong>PDF / Print</strong>
+                </button>
+                <button
+                  type="button"
+                  className={`format-choice-btn ${exportFormat === 'excel' ? 'active' : ''}`}
+                  onClick={() => setExportFormat('excel')}
+                >
+                  <strong>Excel (.xls)</strong>
+                </button>
+              </div>
+            </div>
+
+            {exportFormat === 'pdf' && (
+              <div className="print-option-group">
+                <label>2. Select Paper Size</label>
+                <div className="paper-size-list">
+                  {PAPER_SIZES.map(ps => (
+                    <button
+                      type="button"
+                      key={ps.value}
+                      className={`paper-size-btn ${paperSize === ps.value ? 'active' : ''}`}
+                      onClick={() => setPaperSize(ps.value)}
+                    >
+                      <span>{ps.label}</span>
+                      <strong>{paperSize === ps.value ? 'Selected' : ''}</strong>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="modal-buttons">
+              <button
+                type="button"
+                className="cancel-btn"
+                onClick={() => setShowPrintModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="submit-btn"
+                onClick={handleConfirmPrint}
+              >
+                {exportFormat === 'pdf' ? `Print (${paperSize})` : 'Download Excel'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
