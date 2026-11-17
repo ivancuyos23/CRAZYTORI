@@ -1,6 +1,12 @@
 import React from 'react';
 
-export default function BottomNav({ activeTab, setActiveTab, role, permissions = {} }) {
+export default function BottomNav({
+  activeTab,
+  setActiveTab,
+  role,
+  permissions = {},
+  waitingCount = 0
+}) {
   const isAdmin = role === 'Admin';
 
   return (
@@ -17,6 +23,14 @@ export default function BottomNav({ activeTab, setActiveTab, role, permissions =
         onClick={() => setActiveTab('transactions')}
       >
         <span>📋</span> {isAdmin ? 'Orders & Audit' : 'Shift Orders'}
+        {waitingCount > 0 ? ` (${waitingCount})` : ''}
+      </button>
+
+      <button
+        className={activeTab === 'inventory' ? 'nav-item active' : 'nav-item'}
+        onClick={() => setActiveTab('inventory')}
+      >
+        <span>📦</span> Inventory
       </button>
 
       {(isAdmin || permissions.canViewDSR) && (
@@ -25,15 +39,6 @@ export default function BottomNav({ activeTab, setActiveTab, role, permissions =
           onClick={() => setActiveTab('dsr')}
         >
           <span>📊</span> DSR & P&L
-        </button>
-      )}
-
-      {(isAdmin || permissions.canViewUsage) && (
-        <button
-          className={activeTab === 'usage' ? 'nav-item active' : 'nav-item'}
-          onClick={() => setActiveTab('usage')}
-        >
-          <span>⚖️</span> Daily Usage
         </button>
       )}
 

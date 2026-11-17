@@ -1,5 +1,5 @@
-import React from 'react';
-import { resolveProductImage } from '../admin/AdminMenuView';
+import React, { useState } from 'react';
+import PaymentModal from './PaymentModal';
 import './CartSidebar.css';
 
 export default function CartSidebar({
@@ -10,71 +10,106 @@ export default function CartSidebar({
   setServingNo,
   processCheckout
 }) {
-  const totalItems = cart.reduce((sum, item) => sum + (item.qty || item.quantity || 1), 0);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [mobileExpanded, setMobileExpanded] = useState(false);
+
+  const totalItems = cart.reduce(
+    (sum, item) => sum + Number(item.qty || item.quantity || 1),
+    0
+  );
+
+  const handlePaymentComplete = (paymentDetails) => {
+    setShowPaymentModal(false);
+    setMobileExpanded(false);
+    if (typeof processCheckout === 'function') {
+      processCheckout(paymentDetails);
+    }
+  };
 
   return (
-    <div className="cart-sidebar">
-      <div className="cart-header">
+    <div
+      className={`cart-sidebar ${cart.length === 0 ? 'cart-empty' : 'cart-has-items'} ${
+        mobileExpanded ? 'mobile-open' : ''
+      }`}
+    >
+      {/* Top Cart Header (Tap on mobile to expand/collapse items) */}
+      <div
+        className="cart-header"
+        onClick={() => {
+          if (cart.length > 0) setMobileExpanded(prev => !prev);
+        }}
+      >
         <div className="cart-title-group">
-          <h3>Current Order</h3>
-          <span className="cart-count-badge">{totalItems} items</span>
+          <h3>
+            Current Order {totalItems > 0 ? `(${totalItems})` : ''}
+          </h3>
+          <span className="date-badge">Serving #{servingNo}</span>
         </div>
 
-        <div className="serving-selector-pill">
-          <span>🍽️</span>
-          <select
-            value={servingNo}
-            onChange={e => setServingNo && setServingNo(Number(e.target.value))}
-            aria-label="Serving Number"
-          >
-            {Array.from({ length: 16 }, (_, i) => i + 1).map(num => (
-              <option key={num} value={num}>
-                Serving #{num}
-              </option>
-            ))}
-          </select>
+        <div
+          className="cart-header-controls"
+          onClick={e => e.stopPropagation()}
+        >
+          {setServingNo && (
+            <div className="serving-stepper">
+              <button
+                type="button"
+                className="step-btn"
+                onClick={() => setServingNo(prev => (prev <= 1 ? 16 : prev - 1))}
+                title="Previous Serving #"
+              >
+                ◀
+              </button>
+              <button
+                type="button"
+                className="step-btn"
+                onClick={() => setServingNo(prev => (prev >= 16 ? 1 : prev + 1))}
+                title="Next Serving #"
+              >
+                ▶
+              </button>
+            </div>
+          )}
+
+          {cart.length > 0 && (
+            <button
+              type="button"
+              className="mobile-drawer-toggle"
+              onClick={() => setMobileExpanded(prev => !prev)}
+            >
+              {mobileExpanded ? '▼ Hide' : '▲ View'}
+            </button>
+          )}
         </div>
       </div>
 
+      {/* Scrollable Cart Items */}
       <div className="cart-items-list">
         {cart.length === 0 ? (
-          <div className="empty-cart">
-            <span className="empty-cart-icon">🛒</span>
-            <p>No items added</p>
-          </div>
+          <p className="empty-cart">No items selected yet. Tap menu items to add.</p>
         ) : (
-          cart.map((item, index) => {
-            const itemImage = resolveProductImage(item);
+          cart.map((item, idx) => {
             const qty = item.qty || item.quantity || 1;
+            const itemKey = item.cartKey || `${item.name}-${item.size || 'regular'}`;
             return (
-              <div key={item.cartKey || index} className="cart-item-row">
-                <div className="cart-item-thumb">
-                  {itemImage ? (
-                    <img src={itemImage} alt={item.name} />
-                  ) : (
-                    <span>{item.category === 'Drinks' ? '🥤' : '🍱'}</span>
-                  )}
+              <div key={itemKey || idx} className="cart-item-row">
+                <div className="cart-item-info">
+                  <span className="cart-item-name">
+                    {qty}x {item.name} {item.size ? `(${item.size})` : ''}
+                  </span>
+                  <span className="item-price">
+                    ₱{(Number(item.price || 0) * qty).toFixed(2)}
+                  </span>
                 </div>
-
-                <div className="cart-item-details">
-                  <h4>{item.name}</h4>
-                  <div className="cart-item-meta">
-                    {item.size && <span className="cart-item-size">{item.size}</span>}
-                    <span className="cart-item-price">₱{item.price}</span>
-                  </div>
-                </div>
-
-                <div className="cart-item-controls">
-                  <button
-                    type="button"
-                    onClick={() => updateQty(item.cartKey || item.name, -1)}
-                  >
+                <div className="qty-controls">
+                  <button type="button" onClick={() => updateQty(itemKey, -1)}>
                     −
                   </button>
                   <span>{qty}</span>
                   <button
                     type="button"
-                    onClick={() => updateQty(item.cartKey || item.name, 1)}
+                    onClick={() => updateQty(itemKey, 1)}
+                    className="plus-btn"
                   >
                     +
                   </button>
@@ -85,21 +120,33 @@ export default function CartSidebar({
         )}
       </div>
 
+      {/* Sticky Checkout Bar */}
       <div className="cart-footer">
         <div className="subtotal-row">
-          <span className="subtotal-label">Total</span>
-          <span className="subtotal-amount">₱{subtotal.toFixed(2)}</span>
+          <span>Total ({totalItems} {totalItems === 1 ? 'item' : 'items'})</span>
+          <strong>₱{Number(subtotal || 0).toFixed(2)}</strong>
         </div>
-
         <button
           type="button"
-          className="proceed-pay-btn"
+          className="proceed-btn"
           disabled={cart.length === 0}
-          onClick={processCheckout}
+          onClick={() => {
+            if (cart.length === 0) return;
+            setShowPaymentModal(true);
+          }}
         >
-          Proceed to Pay
+          PROCEED TO PAY ➔
         </button>
       </div>
+
+      {showPaymentModal && (
+        <PaymentModal
+          subtotal={subtotal}
+          onClose={() => setShowPaymentModal(false)}
+          onComplete={handlePaymentComplete}
+          onConfirmPayment={handlePaymentComplete}
+        />
+      )}
     </div>
   );
 }

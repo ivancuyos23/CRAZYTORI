@@ -291,3 +291,180 @@
     text-align: center;
   }
 }
+/* =========================================================
+   ADD MENU ITEM FORM — CLEAN HIGH-CONTRAST FIX
+   ========================================================= */
+.menu-add-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  text-align: left;
+}
+
+.menu-form-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.menu-category-toggle {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.menu-category-toggle .tier-select-card {
+  background: #f8fafc;
+  border: 2px solid #94a3b8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+}
+
+.menu-category-toggle .tier-select-card.active {
+  background: #fffdf5;
+  border: 2px solid #0f172a;
+  box-shadow: inset 4px 0 0 #ffb300;
+}
+
+/* Item Name + Base Price Row */
+.menu-add-form .form-split-row {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 10px;
+  align-items: end;
+}
+
+/* Full-Width Options Box (Spice, Flavors, Drink Oz) */
+.drink-sizes-box {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-left: 5px solid #0f172a;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Fix Giant Stretched Checkbox */
+.spice-check-row {
+  display: flex !important;
+  align-items: center;
+  gap: 10px;
+  background: #ffffff;
+  border: 2px solid #94a3b8;
+  border-radius: 10px;
+  padding: 10px 12px;
+  cursor: pointer;
+  text-transform: none !important;
+}
+
+input[type="checkbox"].spice-check-input {
+  width: 20px !important;
+  height: 20px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  accent-color: #0f172a;
+  flex-shrink: 0;
+  box-shadow: none !important;
+  cursor: pointer;
+}
+
+.spice-check-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.spice-check-text strong {
+  font-size: 0.85rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.spice-check-text small {
+  font-size: 0.73rem;
+  font-weight: 600;
+  color: #64748b;
+}
+
+.flavor-field-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.flavor-label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.flavor-fill-btn {
+  background: #0f172a;
+  color: #ffb300;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* Drink 8oz / 16oz / 22oz Grid */
+.size-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.size-inputs-grid > div {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.size-inputs-grid small {
+  font-size: 0.74rem;
+  font-weight: 800;
+  color: #334155;
+}
+
+.size-inputs-grid input {
+  text-align: center;
+  padding: 6px 8px !important;
+}
+
+/* Photo Upload & Presets Box */
+.image-manager-box {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #f8fafc;
+  border: 2px solid #94a3b8;
+  border-radius: 12px;
+  padding: 10px 12px;
+}
+
+.image-preview-frame {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 2px solid #0f172a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  font-size: 1.8rem;
+}
+
+@media (max-width: 520px) {
+  .menu-add-form .form-split-row {
+    grid-template-columns: 1fr;
+  }
+}

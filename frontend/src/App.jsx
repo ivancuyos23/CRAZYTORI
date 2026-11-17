@@ -1,40 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import {
-  loginAdmin,
   fetchProducts,
-  createProductAPI,
-  updateProductAPI,
-  deleteProductAPI,
   fetchTransactions,
   saveTransactionAPI,
   voidTransactionAPI,
   fetchExpenses,
   saveExpenseAPI,
   deleteExpenseAPI,
-  fetchPermissionsAPI,
-  savePermissionsAPI
+  loginAdmin
 } from './services/api';
 
 import Header from './components/layout/Header';
 import BottomNav from './components/layout/BottomNav';
+import { ToastContainer, showToast } from './components/layout/UIFeedback';
 import POSCatalog from './components/cashier/POSCatalog';
 import CartSidebar from './components/cashier/CartSidebar';
-import PaymentModal from './components/cashier/PaymentModal';
 import TransactionsView from './components/cashier/TransactionsView';
-
+import InventoryView from './components/admin/InventoryView';
 import AdminDSRView from './components/admin/AdminDSRView';
-import AdminUsageView from './components/admin/AdminUsageView';
 import AdminExpensesView from './components/admin/AdminExpensesView';
 import AdminMenuView from './components/admin/AdminMenuView';
 import AdminSettingsView from './components/admin/AdminSettingsView';
-
 import './App.css';
 
 const DEFAULT_PERMISSIONS = {
   canVoidTransactions: false,
   canFilterTransactionDates: false,
   canViewDSR: false,
-  canViewUsage: false,
   canLogExpenses: false,
   canDeleteExpenses: false,
   canManageMenu: false
@@ -42,55 +34,44 @@ const DEFAULT_PERMISSIONS = {
 
 export default function App() {
   const todayStr = new Date().toISOString().split('T')[0];
-  const currentMonthStr = todayStr.slice(0, 7);
 
-  // 1. Persistent Role, Active Tab & Category across refreshes
-  const [role, setRole] = useState(() => {
-    return localStorage.getItem('crazy_tori_role') || 'Cashier';
-  });
-
+  const [role, setRole] = useState(() => localStorage.getItem('crazy_tori_role') || 'Cashier');
   const [activeTab, setActiveTab] = useState(() => {
-    return localStorage.getItem('crazy_tori_active_tab') || 'pos';
+    const savedTab = localStorage.getItem('crazy_tori_active_tab') || 'pos';
+    return savedTab === 'waiting' ? 'transactions' : savedTab;
   });
-
-  const [category, setCategory] = useState(() => {
-    return localStorage.getItem('crazy_tori_category') || 'Food';
-  });
-
-  // 2. Persistent Cashier Access Permissions (loaded immediately, synced with SQLite)
-  const [permissions, setPermissionsState] = useState(() => {
-    const saved = localStorage.getItem('crazy_tori_permissions');
-    return saved ? { ...DEFAULT_PERMISSIONS, ...JSON.parse(saved) } : DEFAULT_PERMISSIONS;
-  });
-
-  // 3. Persistent Cart, Serving No & Report Dates across refreshes
-  const [cart, setItemsCart] = useState(() => {
-    const saved = localStorage.getItem('crazy_tori_cart');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [servingNo, setServingNo] = useState(() => {
-    return Number(localStorage.getItem('crazy_tori_serving_no')) || 1;
-  });
-
-  const [selectedDate, setSelectedDate] = useState(() => {
-    return localStorage.getItem('crazy_tori_selected_date') || todayStr;
-  });
-
-  const [selectedMonth, setSelectedMonth] = useState(() => {
-    return localStorage.getItem('crazy_tori_selected_month') || currentMonthStr;
-  });
-
+  const [category, setCategory] = useState(() => localStorage.getItem('crazy_tori_category') || 'Food');
   const [searchQuery, setSearchQuery] = useState('');
+
   const [products, setProducts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [expenses, setExpenses] = useState([]);
 
+  const [cart, setItemsCart] = useState(() => {
+    const saved = localStorage.getItem('crazy_tori_cart');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [servingNo, setServingNo] = useState(() => {
+    const saved = localStorage.getItem('crazy_tori_serving_no');
+    return saved ? Number(saved) : 1;
+  });
+
+  const [waitingOrders, setWaitingOrders] = useState(() => {
+    const saved = localStorage.getItem('crazy_tori_waiting_orders');
+    return saved ? JSON.parse(saved) : [];
+  });
+
+  const [selectedDate, setSelectedDate] = useState(todayStr);
+  const [selectedMonth, setSelectedMonth] = useState(todayStr.slice(0, 7));
+
+  const [permissions, setPermissions] = useState(() => {
+    const saved = localStorage.getItem('crazy_tori_permissions');
+    return saved ? JSON.parse(saved) : DEFAULT_PERMISSIONS;
+  });
+
   const [showPinModal, setShowPinModal] = useState(false);
   const [pinInput, setPinInput] = useState('');
-  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
-  // Save UI states automatically on change
   useEffect(() => {
     localStorage.setItem('crazy_tori_role', role);
   }, [role]);
@@ -112,63 +93,170 @@ export default function App() {
   }, [servingNo]);
 
   useEffect(() => {
-    localStorage.setItem('crazy_tori_selected_date', selectedDate);
-  }, [selectedDate]);
+    localStorage.setItem('crazy_tori_waiting_orders', JSON.stringify(waitingOrders));
+  }, [waitingOrders]);
 
   useEffect(() => {
-    localStorage.setItem('crazy_tori_selected_month', selectedMonth);
-  }, [selectedMonth]);
+    localStorage.setItem('crazy_tori_permissions', JSON.stringify(permissions));
+  }, [permissions]);
 
-  // Load Database Data & Persistent Permissions on Startup
+  const loadData = async () => {
+    try {
+      const [prods, txs, exps] = await Promise.all([
+        fetchProducts(),
+        fetchTransactions(),
+        fetchExpenses()
+      ]);
+      setProducts(prods || []);
+      setTransactions(txs || []);
+      setExpenses(exps || []);
+    } catch (err) {
+      console.error('Error loading POS data:', err);
+    }
+  };
+
   useEffect(() => {
     loadData();
   }, []);
 
-  const loadData = async () => {
-    try {
-      const [prodData, txData, expData, permData] = await Promise.all([
-        fetchProducts(),
-        fetchTransactions(),
-        fetchExpenses(),
-        fetchPermissionsAPI()
-      ]);
-      setProducts(prodData || []);
-      setTransactions(txData || []);
-      setExpenses(expData || []);
-      if (permData) setPermissionsState(permData);
-    } catch (err) {
-      console.error('Error loading store data:', err);
-    }
+  const addToCart = (product, size = null, price = product.price) => {
+    const cartKey = `${product.name}-${size || 'regular'}`;
+    setItemsCart(prev => {
+      const existingIndex = prev.findIndex(
+        item => (item.cartKey || `${item.name}-${item.size || 'regular'}`) === cartKey
+      );
+      if (existingIndex > -1) {
+        const updated = [...prev];
+        const currentQty = updated[existingIndex].qty || updated[existingIndex].quantity || 1;
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          cartKey,
+          qty: currentQty + 1,
+          quantity: currentQty + 1
+        };
+        return updated;
+      }
+      return [
+        ...prev,
+        {
+          id: product.id || Date.now(),
+          cartKey,
+          name: product.name,
+          category: product.category,
+          size: size || null,
+          price: Number(price),
+          qty: 1,
+          quantity: 1,
+          image: product.image || null
+        }
+      ];
+    });
+    showToast(`Added ${product.name}${size ? ` (${size})` : ''}`, 'info');
   };
 
-  // Wrapper that updates permissions in state, localStorage, and SQLite DB
-  const handleUpdatePermissions = async (updater) => {
-    const nextPerms = typeof updater === 'function' ? updater(permissions) : updater;
-    setPermissionsState(nextPerms);
-    await savePermissionsAPI(nextPerms);
+  const updateQty = (keyOrIndex, delta) => {
+    setItemsCart(prev => {
+      const updated = [...prev];
+      const idx =
+        typeof keyOrIndex === 'number'
+          ? keyOrIndex
+          : updated.findIndex(
+              item =>
+                item.cartKey === keyOrIndex ||
+                item.name === keyOrIndex ||
+                `${item.name}-${item.size || 'regular'}` === keyOrIndex
+            );
+
+      if (idx === -1) return prev;
+
+      const currentQty = updated[idx].qty || updated[idx].quantity || 1;
+      const nextQty = currentQty + delta;
+      if (nextQty <= 0) {
+        updated.splice(idx, 1);
+      } else {
+        updated[idx] = { ...updated[idx], qty: nextQty, quantity: nextQty };
+      }
+      return updated;
+    });
   };
 
-  // Guard activeTab only if Cashier loses access to a restricted tab
-  useEffect(() => {
-    if (role === 'Admin') return;
-    const allowedForCashier = {
-      pos: true,
-      transactions: true,
-      dsr: !!permissions.canViewDSR,
-      usage: !!permissions.canViewUsage,
-      expenses: !!permissions.canLogExpenses,
-      menu: !!permissions.canManageMenu,
-      settings: false
+  const subtotal = cart.reduce(
+    (sum, item) => sum + Number(item.price || 0) * Number(item.qty || item.quantity || 1),
+    0
+  );
+
+  const handleCheckout = (paymentDetails) => {
+    const pendingOrder = {
+      id: 'TXN-' + Date.now(),
+      date: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
+      servingNo: servingNo,
+      paymentMethod: paymentDetails?.paymentMethod || 'Cash',
+      total: subtotal,
+      discount: 0,
+      items: cart,
+      cashierName: role,
+      referenceNo: paymentDetails?.gcashRef || null,
+      paymentProof: paymentDetails?.gcashImage || null
     };
-    if (!allowedForCashier[activeTab]) {
-      setActiveTab('pos');
-    }
-  }, [role, permissions, activeTab]);
 
-  // Role Switching & Admin PIN Unlock
-  const handleRoleButtonClick = () => {
+    setWaitingOrders(prev => [...prev, pendingOrder]);
+    setItemsCart([]);
+    setServingNo(prev => (prev >= 16 ? 1 : prev + 1));
+    setActiveTab('transactions');
+    showToast(`Serving #${servingNo} sent to Pending Orders!`, 'success');
+  };
+
+  const handleCompleteWaitingOrder = async (order) => {
+    try {
+      const completedOrder = {
+        ...order,
+        date: new Date().toISOString()
+      };
+      await saveTransactionAPI(completedOrder);
+      setWaitingOrders(prev => prev.filter(o => o.id !== order.id));
+      setTransactions(prev => [completedOrder, ...prev]);
+      await loadData();
+      showToast(`Serving #${order.servingNo || '-'} marked Done & Saved!`, 'success');
+    } catch (err) {
+      showToast('Failed to complete order: ' + err.message, 'error');
+    }
+  };
+
+  const handleCancelWaitingOrder = (orderId) => {
+    if (!window.confirm('Remove this pending order?')) return;
+    setWaitingOrders(prev => prev.filter(o => o.id !== orderId));
+    showToast('Pending order removed from queue.', 'info');
+  };
+
+  const handleVoidTransaction = async (id) => {
+    if (!window.confirm('Void and permanently delete this order?')) return;
+    await voidTransactionAPI(id);
+    setTransactions(prev => prev.filter(t => t.id !== id));
+    await loadData();
+    showToast('Order voided and removed.', 'error');
+  };
+
+  const handleSaveExpense = async (expenseData) => {
+    await saveExpenseAPI({ ...expenseData, loggedBy: role });
+    await loadData();
+    showToast('Expense record saved!', 'success');
+  };
+
+  const handleDeleteExpense = async (id) => {
+    await deleteExpenseAPI(id);
+    setExpenses(prev => prev.filter(e => e.id !== id));
+    await loadData();
+    showToast('Expense record deleted.', 'info');
+  };
+
+  const handleRoleToggle = () => {
     if (role === 'Admin') {
       setRole('Cashier');
+      if (['dsr', 'expenses', 'menu', 'settings'].includes(activeTab)) {
+        setActiveTab('pos');
+      }
+      showToast('Locked to Cashier Mode', 'info');
     } else {
       setPinInput('');
       setShowPinModal(true);
@@ -178,111 +266,24 @@ export default function App() {
   const handlePinSubmit = async (e) => {
     e.preventDefault();
     try {
-      await loginAdmin(pinInput);
-      setRole('Admin');
-      setShowPinModal(false);
-      setPinInput('');
+      const res = await loginAdmin(pinInput);
+      if (res && res.success) {
+        setRole('Admin');
+        setShowPinModal(false);
+        setPinInput('');
+        showToast('Admin Mode Unlocked!', 'success');
+      } else {
+        showToast('Incorrect Admin PIN!', 'error');
+      }
     } catch {
-      alert('Incorrect Admin PIN.');
+      showToast('Incorrect Admin PIN!', 'error');
     }
-  };
-
-  // Cart & Checkout Operations
-  const addToCart = (product, size, price) => {
-    const cartKey = size ? `${product.name}-${size}` : product.name;
-    const existing = cart.find(item => item.cartKey === cartKey);
-    if (existing) {
-      setItemsCart(cart.map(item => (item.cartKey === cartKey ? { ...item, qty: item.qty + 1 } : item)));
-    } else {
-      setItemsCart([
-        ...cart,
-        {
-          cartKey,
-          name: product.name,
-          category: product.category,
-          image: product.image,
-          size,
-          price: Number(price),
-          qty: 1
-        }
-      ]);
-    }
-  };
-
-  const updateQty = (cartKey, delta) => {
-    setItemsCart(
-      cart
-        .map(item => {
-          if (item.cartKey === cartKey) {
-            const nextQty = item.qty + delta;
-            return nextQty > 0 ? { ...item, qty: nextQty } : null;
-          }
-          return item;
-        })
-        .filter(Boolean)
-    );
-  };
-
-  const subtotal = cart.reduce((sum, item) => sum + item.price * item.qty, 0);
-
-const handleCompletePayment = async (paymentDetails) => {
-    const newTx = {
-      id: 'TXN-' + Date.now(),
-      date: new Date().toISOString(),
-      servingNo,
-      paymentMethod: paymentDetails.paymentMethod,
-      total: subtotal,
-      discount: 0,
-      items: cart,
-      cashierName: role,
-      referenceNo: paymentDetails.gcashRef || null,
-      paymentProof: paymentDetails.gcashImage || null
-    };
-
-    await saveTransactionAPI(newTx);
-    setTransactions(prev => [newTx, ...prev]);
-    setItemsCart([]);
-    setServingNo(prev => (prev >= 16 ? 1 : prev + 1));
-    setShowPaymentModal(false);
-  };
-
-  const handleVoidTransaction = async (id) => {
-    if (!window.confirm('Void and delete this order?')) return;
-    await voidTransactionAPI(id);
-    setTransactions(prev => prev.filter(t => t.id !== id));
-  };
-
-  // Expense Operations
-  const handleSaveExpense = async (expData) => {
-    await saveExpenseAPI(expData);
-    const updated = await fetchExpenses();
-    setExpenses(updated);
-  };
-
-  const handleDeleteExpense = async (id) => {
-    await deleteExpenseAPI(id);
-    setExpenses(prev => prev.filter(e => e.id !== id));
-  };
-
-  // Menu Operations
-  const handleAddProduct = async (prodData) => {
-    await createProductAPI(prodData);
-    setProducts(await fetchProducts());
-  };
-
-  const handleUpdateProduct = async (id, prodData) => {
-    await updateProductAPI(id, prodData);
-    setProducts(await fetchProducts());
-  };
-
-  const handleDeleteProduct = async (id) => {
-    await deleteProductAPI(id);
-    setProducts(await fetchProducts());
   };
 
   return (
     <div className="tablet-container">
-      <Header role={role} onRoleClick={handleRoleButtonClick} />
+      <ToastContainer />
+      <Header role={role} onRoleToggle={handleRoleToggle} />
 
       <div className="workspace">
         {activeTab === 'pos' && (
@@ -297,11 +298,11 @@ const handleCompletePayment = async (paymentDetails) => {
             />
             <CartSidebar
               cart={cart}
-              updateQty={updateQty}
               subtotal={subtotal}
               servingNo={servingNo}
               setServingNo={setServingNo}
-              processCheckout={() => cart.length > 0 && setShowPaymentModal(true)}
+              updateQty={updateQty}
+              processCheckout={handleCheckout}
             />
           </>
         )}
@@ -309,25 +310,19 @@ const handleCompletePayment = async (paymentDetails) => {
         {activeTab === 'transactions' && (
           <TransactionsView
             transactions={transactions}
+            waitingOrders={waitingOrders}
+            onCompleteOrder={handleCompleteWaitingOrder}
+            onCancelWaiting={handleCancelWaitingOrder}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
             role={role}
             permissions={permissions}
             onVoidTransaction={handleVoidTransaction}
           />
         )}
 
-        {activeTab === 'dsr' && (
-          <AdminDSRView
-            selectedDate={selectedDate}
-            setSelectedDate={setSelectedDate}
-            selectedMonth={selectedMonth}
-            setSelectedMonth={setSelectedMonth}
-            transactions={transactions}
-            expenses={expenses}
-          />
-        )}
-
-        {activeTab === 'usage' && (
-          <AdminUsageView
+        {activeTab === 'inventory' && (
+          <InventoryView
             transactions={transactions}
             selectedDate={selectedDate}
             setSelectedDate={setSelectedDate}
@@ -335,7 +330,18 @@ const handleCompletePayment = async (paymentDetails) => {
           />
         )}
 
-        {activeTab === 'expenses' && (
+        {activeTab === 'dsr' && (role === 'Admin' || permissions.canViewDSR) && (
+          <AdminDSRView
+            transactions={transactions}
+            expenses={expenses}
+            selectedDate={selectedDate}
+            setSelectedDate={setSelectedDate}
+            selectedMonth={selectedMonth}
+            setSelectedMonth={setSelectedMonth}
+          />
+        )}
+
+        {activeTab === 'expenses' && (role === 'Admin' || permissions.canLogExpenses) && (
           <AdminExpensesView
             expenses={expenses}
             role={role}
@@ -345,19 +351,14 @@ const handleCompletePayment = async (paymentDetails) => {
           />
         )}
 
-        {activeTab === 'menu' && (
-          <AdminMenuView
-            products={products}
-            onAddProduct={handleAddProduct}
-            onUpdateProduct={handleUpdateProduct}
-            onDeleteProduct={handleDeleteProduct}
-          />
+        {activeTab === 'menu' && (role === 'Admin' || permissions.canManageMenu) && (
+          <AdminMenuView products={products} onRefreshProducts={loadData} />
         )}
 
         {activeTab === 'settings' && role === 'Admin' && (
           <AdminSettingsView
             permissions={permissions}
-            setPermissions={handleUpdatePermissions}
+            setPermissions={setPermissions}
             servingNo={servingNo}
             setServingNo={setServingNo}
             transactions={transactions}
@@ -372,32 +373,24 @@ const handleCompletePayment = async (paymentDetails) => {
         setActiveTab={setActiveTab}
         role={role}
         permissions={permissions}
+        waitingCount={waitingOrders.length}
       />
 
-      {showPaymentModal && (
-        <PaymentModal
-          subtotal={subtotal}
-          cart={cart}
-          onClose={() => setShowPaymentModal(false)}
-          onComplete={handleCompletePayment}
-        />
-      )}
-
       {showPinModal && (
-        <div className="modal-backdrop" onClick={() => setShowPinModal(false)}>
-          <form
-            className="modal-card"
-            onClick={e => e.stopPropagation()}
-            onSubmit={handlePinSubmit}
-          >
-            <h3>Admin PIN Required</h3>
+        <div className="modal-backdrop">
+          <form className="modal-card" onSubmit={handlePinSubmit}>
+            <h3>🔒 Unlock Admin Mode</h3>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#64748b' }}>
+              Enter 4-digit Admin PIN
+            </p>
             <input
               type="password"
-              maxLength="4"
-              placeholder="••••"
+              inputMode="numeric"
+              maxLength={4}
               value={pinInput}
               onChange={e => setPinInput(e.target.value)}
               className="pin-input"
+              placeholder="••••"
               autoFocus
             />
             <div className="modal-buttons">

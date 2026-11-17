@@ -1,4 +1,13 @@
-/* --- Header Month / Day / Year Dropdowns --- */
+/* =========================================================
+   DSR & MONTHLY P&L — HIGH-CONTRAST EXECUTIVE LEDGER
+   ========================================================= */
+.dsr-export-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
 .header-dropdown-group {
   display: flex;
   align-items: center;
@@ -6,126 +15,142 @@
   flex-wrap: wrap;
 }
 
+/* Compact High-Contrast Dropdowns for Dark Card Headers & Export Bar */
 .header-select {
-  padding: 7px 10px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  background-color: #ffffff;
-  color: #0f172a;
-  font-size: 0.82rem;
-  font-weight: 700;
+  height: 36px !important;
+  padding: 4px 10px !important;
+  border-radius: 8px !important;
+  border: 2px solid #ffb300 !important;
+  background-color: #1e293b !important;
+  color: #ffffff !important;
+  font-size: 0.8rem !important;
+  font-weight: 900 !important;
   cursor: pointer;
-  outline: none;
-  width: auto;
-  margin: 0;
-  transition: border-color 0.15s ease;
+  width: auto !important;
+  margin: 0 !important;
+  box-shadow: none !important;
 }
 
-.header-select:hover,
+.admin-header-bar .header-select {
+  background-color: #f8fafc !important;
+  color: #0f172a !important;
+  border: 2px solid #0f172a !important;
+}
+
 .header-select:focus {
-  border-color: #0f172a;
+  border-color: #ffffff !important;
+  box-shadow: 0 0 0 2px #ffb300 !important;
 }
 
-/* --- DSR & Monthly P&L Financial Statement Styles --- */
+/* Framed DSR & P&L Sections */
 .ledger-section {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-left: 5px solid #0f172a;
+  border-radius: 12px;
+  padding: 12px 14px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid #e2e8f0;
 }
 
 .ledger-section-title {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.78rem;
-  font-weight: 800;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid #e2e8f0;
+  font-size: 0.84rem;
+  font-weight: 900;
+  color: #0f172a;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: #475569;
+  letter-spacing: 0.03em;
 }
 
 .ledger-empty {
-  background: #f8fafc;
-  border: 1px dashed #cbd5e1;
+  background: #ffffff;
+  border: 1.5px dashed #94a3b8;
   border-radius: 8px;
   padding: 14px;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
+  font-weight: 700;
   color: #64748b;
 }
 
+/* Step 1: Itemized Sales Mini Table */
 .mini-table-wrapper {
-  max-height: 190px;
+  max-height: 240px;
   overflow-y: auto;
-  border: 1px solid #e2e8f0;
+  border: 2px solid #94a3b8;
   border-radius: 8px;
-  background: #f8fafc;
+  background: #ffffff;
 }
 
 .mini-ledger-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.82rem;
+  font-size: 0.84rem;
 }
 
 .mini-ledger-table th {
   position: sticky;
   top: 0;
-  background: #f1f5f9;
-  color: #475569;
-  font-weight: 700;
-  padding: 7px 10px;
-  border-bottom: 1px solid #e2e8f0;
-  text-align: left;
+  background: #0f172a;
+  color: #ffb300;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 8px 10px;
+  border-bottom: 2px solid #ffb300;
 }
 
 .mini-ledger-table td {
-  padding: 7px 10px;
+  padding: 8px 10px;
   border-bottom: 1px solid #e2e8f0;
   color: #0f172a;
-  background: #ffffff;
+  font-weight: 700;
 }
 
+.mini-ledger-table tr:last-child td {
+  border-bottom: none;
+}
+
+/* Ledger Rows (Cash, GCash, Expenses) */
 .ledger-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.88rem;
-  color: #334155;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #1e293b;
   padding: 3px 0;
 }
 
-.ledger-row strong {
-  color: #0f172a;
-}
-
-.ledger-sub {
-  display: block;
-  font-size: 0.72rem;
-  color: #64748b;
-}
-
 .ledger-val {
-  font-size: 0.95rem;
-  font-weight: 700;
+  font-weight: 900;
   color: #0f172a;
+  font-variant-numeric: tabular-nums;
 }
 
-.subtotal-line {
+.ledger-row.subtotal-line {
   margin-top: 4px;
   padding-top: 8px;
-  border-top: 1px dashed #cbd5e1;
-  font-weight: 700;
+  border-top: 2px dashed #94a3b8;
+  font-size: 0.96rem;
+  font-weight: 900;
   color: #0f172a;
 }
 
+/* Step 4: Mini Expense Breakdown inside DSR */
 .expense-mini-breakdown {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  border: 1.5px solid #fecaca;
+  border-left: 4px solid #dc2626;
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 8px 10px;
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -134,21 +159,58 @@
 .expense-mini-row {
   display: flex;
   justify-content: space-between;
-  font-size: 0.78rem;
-  color: #64748b;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #b91c1c;
 }
 
-/* Monthly P&L Status Banner */
-.pnl-status-card {
-  background: #f8fafc;
-  border: 1px solid #cbd5e1;
-  border-left: 4px solid #0f172a;
-  border-radius: 10px;
+/* Step 5: Prominent Net Revenue / Net Profit Footer Box */
+.ledger-total-box {
+  background: #0f172a;
+  color: #ffffff;
+  border: 2.5px solid #0f172a;
+  border-left: 8px solid #ffb300;
+  border-radius: 12px;
   padding: 14px 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15);
 }
 
-.pnl-status-card.status-gain { border-left-color: #10b981; }
-.pnl-status-card.status-loss { border-left-color: #dc2626; }
+.ledger-total-label {
+  font-size: 0.85rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  color: #ffb300;
+}
+
+.ledger-total-figure {
+  font-size: 1.35rem;
+  font-weight: 900;
+  color: #ffffff;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Monthly P&L Status Banner (Profitable vs Loss) */
+.pnl-status-card {
+  border-radius: 12px;
+  padding: 14px 16px;
+  border: 2.5px solid #0f172a;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.pnl-status-card.status-gain {
+  background: #dcfce7;
+  border-left: 8px solid #16a34a;
+}
+
+.pnl-status-card.status-loss {
+  background: #fee2e2;
+  border-left: 8px solid #dc2626;
+}
 
 .pnl-status-top {
   display: flex;
@@ -158,45 +220,172 @@
 }
 
 .pnl-status-pill {
+  background: #0f172a;
+  color: #ffffff;
   font-size: 0.72rem;
-  font-weight: 800;
-  color: #0f172a;
+  font-weight: 900;
+  padding: 4px 10px;
+  border-radius: 999px;
+  letter-spacing: 0.05em;
+}
+
+.status-gain .pnl-status-pill {
+  color: #4ade80;
+}
+
+.status-loss .pnl-status-pill {
+  color: #f87171;
 }
 
 .pnl-margin-pill {
   background: #ffffff;
-  border: 1px solid #cbd5e1;
-  padding: 2px 8px;
+  border: 1.5px solid #0f172a;
+  color: #0f172a;
+  font-size: 0.75rem;
+  font-weight: 900;
+  padding: 3px 10px;
   border-radius: 999px;
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 .pnl-main-figure {
-  font-size: 1.75rem;
+  font-size: 1.6rem;
   font-weight: 900;
   color: #0f172a;
-  margin: 6px 0 2px 0;
+  font-variant-numeric: tabular-nums;
 }
 
-.pnl-status-caption {
-  margin: 0;
-  font-size: 0.76rem;
-  color: #64748b;
+/* Mobile & Portrait Tablet Adjustments */
+@media (max-width: 640px) {
+  .dsr-export-bar {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .dsr-export-bar select {
+    grid-column: 1 / -1;
+    width: 100% !important;
+  }
+
+  .header-dropdown-group {
+    width: 100%;
+    display: flex;
+  }
+
+  .header-dropdown-group .header-select {
+    flex: 1;
+  }
+
+  .ledger-total-figure {
+    font-size: 1.15rem;
+  }
+
+  .pnl-main-figure {
+    font-size: 1.35rem;
+  }
 }
-/* --- Print / Export Popup Modal Styles --- */
+/* =========================================================
+   HIGH-CONTRAST PRINT & EXPORT MODAL (DSR & P&L)
+   ========================================================= */
 .print-options-modal {
-  text-align: left;
-  max-width: 380px;
-  gap: 14px;
+  max-width: 410px !important;
+  padding: 18px !important;
+  text-align: left !important;
+  gap: 14px !important;
+  border: 2.5px solid #0f172a !important;
+  border-radius: 16px !important;
 }
 
+/* Dark Top Header Banner */
 .print-modal-header {
+  background: #0f172a;
+  color: #ffffff;
+  margin: -18px -18px 2px -18px;
+  padding: 14px 18px;
+  border-radius: 13px 13px 0 0;
+  border-bottom: 3px solid #ffb300;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 10px;
 }
 
+.print-modal-tag {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #ffb300;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+
+.print-modal-header h3 {
+  margin: 0;
+  color: #ffffff !important;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.print-close-btn {
+  background: #1e293b;
+  color: #ffffff;
+  border: 1.5px solid #475569;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  font-weight: 900;
+  font-size: 0.9rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.print-close-btn:hover {
+  background: #dc2626;
+  border-color: #dc2626;
+}
+
+/* Date & Month Summary Strip */
+.print-summary-strip {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-left: 5px solid #ffb300;
+  border-radius: 10px;
+  padding: 8px 14px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.print-summary-strip > div {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.print-summary-strip span {
+  font-size: 0.68rem;
+  font-weight: 900;
+  color: #64748b;
+  text-transform: uppercase;
+}
+
+.print-summary-strip strong {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #0f172a;
+}
+
+.print-summary-divider {
+  width: 2px;
+  height: 26px;
+  background: #cbd5e1;
+}
+
+/* Option Sections */
 .print-option-group {
   display: flex;
   flex-direction: column;
@@ -204,49 +393,73 @@
 }
 
 .print-option-group label {
-  font-size: 0.78rem;
-  font-weight: 800;
-  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #0f172a;
   text-transform: uppercase;
+  letter-spacing: 0.05em;
   margin: 0;
 }
 
+/* Format Selector Cards (PDF vs Excel) */
 .format-choice-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  gap: 10px;
 }
 
 .format-choice-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: center;
+  gap: 3px;
   padding: 12px 10px;
-  border-radius: 10px;
-  border: 1.5px solid #cbd5e1;
+  border-radius: 12px;
+  border: 2px solid #94a3b8;
   background: #f8fafc;
   color: #0f172a;
   cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.format-choice-btn span {
-  font-size: 1.4rem;
+.format-choice-btn .format-icon {
+  font-size: 1.45rem;
+  line-height: 1;
+  margin-bottom: 2px;
 }
 
 .format-choice-btn strong {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.format-choice-btn small {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #64748b;
 }
 
 .format-choice-btn.active {
-  border: 2px solid #0f172a;
-  background: #fef3c7;
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffffff;
+  box-shadow: 0 4px 0 #ffb300;
 }
 
+.format-choice-btn.active strong {
+  color: #ffb300;
+}
+
+.format-choice-btn.active small {
+  color: #cbd5e1;
+}
+
+/* Paper Size Selection Rows */
 .paper-size-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
 }
 
 .paper-size-btn {
@@ -254,29 +467,63 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  border: 2px solid #cbd5e1;
   background: #ffffff;
   color: #0f172a;
-  font-size: 0.85rem;
-  font-weight: 600;
   cursor: pointer;
+  transition: all 0.12s ease;
 }
 
-.paper-size-btn.active {
-  border: 2px solid #0f172a;
-  background: #fef3c7;
+.paper-size-btn:hover {
+  border-color: #64748b;
+}
+
+.paper-size-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.paper-radio-dot {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid #64748b;
+  background: #ffffff;
+  display: inline-block;
+  position: relative;
+}
+
+.paper-size-info strong {
+  font-size: 0.86rem;
   font-weight: 800;
 }
 
-@media (max-width: 600px) {
-  .header-dropdown-group {
-    width: 100%;
-    display: flex;
-  }
-  .header-select {
-    flex: 1;
-    padding: 7px 6px;
-    font-size: 0.78rem;
-  }
+.paper-dim-badge {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #475569;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.paper-size-btn.active {
+  background: #fffdf5;
+  border: 2px solid #0f172a;
+  box-shadow: inset 4px 0 0 #ffb300;
+}
+
+.paper-size-btn.active .paper-radio-dot {
+  border-color: #0f172a;
+  background: #ffb300;
+  box-shadow: inset 0 0 0 3px #0f172a;
+}
+
+.paper-size-btn.active .paper-dim-badge {
+  background: #0f172a;
+  border-color: #0f172a;
+  color: #ffb300;
 }

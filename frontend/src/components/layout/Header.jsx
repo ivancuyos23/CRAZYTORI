@@ -3,12 +3,14 @@ import './Header.css';
 
 export default function Header({
   role = 'Cashier',
+  onRoleToggle,
   onRoleClick,
   onSwitchRole,
   onToggleRole
 }) {
-  // Supports any of the handler prop names from App.jsx
-  const handleTrigger = onRoleClick || onSwitchRole || onToggleRole;
+  // Automatically works with any prop name passed from App.jsx
+  const handleTrigger =
+    onRoleToggle || onRoleClick || onSwitchRole || onToggleRole;
   const isAdmin = role === 'Admin';
 
   return (
@@ -20,19 +22,21 @@ export default function Header({
         </div>
         <div className="logo-subtext">
           <span className="jp-sub">チキンポッパー</span>
-          <span className="branch-sub">CDU Branch</span>
+          <span className="branch-sub">• CDU Branch POS</span>
         </div>
       </div>
 
       <div className="header-actions">
         <div
-          className={`role-switcher-pill ${isAdmin ? 'is-admin' : ''}`}
-          onClick={handleTrigger}
+          className={`role-switcher-pill ${isAdmin ? 'is-admin' : 'is-cashier'}`}
+          onClick={() => {
+            if (typeof handleTrigger === 'function') handleTrigger();
+          }}
           style={{ cursor: 'pointer' }}
         >
           <div className="role-status">
             <span className="status-dot"></span>
-            <span className="role-label">{isAdmin ? 'Admin' : 'Cashier'}</span>
+            <span className="role-label">{role} Mode</span>
           </div>
 
           <button
@@ -40,10 +44,11 @@ export default function Header({
             className="role-action-btn"
             onClick={(e) => {
               e.stopPropagation();
-              if (handleTrigger) handleTrigger();
+              if (typeof handleTrigger === 'function') handleTrigger();
             }}
+            title={isAdmin ? 'Return to Cashier Mode' : 'Unlock Admin Mode'}
           >
-            {isAdmin ? 'Exit Admin' : 'Admin Login'}
+            {isAdmin ? 'Lock ↩' : 'Admin 🔒'}
           </button>
         </div>
       </div>

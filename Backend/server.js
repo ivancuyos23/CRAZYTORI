@@ -12,6 +12,8 @@ app.use(express.json({ limit: '10mb' }));
 db.serialize(() => {
   db.run(`ALTER TABLE transactions ADD COLUMN servingNo INTEGER`, () => {});
   db.run(`ALTER TABLE transactions ADD COLUMN referenceNo TEXT`, () => {});
+  db.run(`ALTER TABLE products ADD COLUMN hasSpice INTEGER DEFAULT 0`, () => {});
+  db.run(`ALTER TABLE products ADD COLUMN flavors TEXT`, () => {});
 });
 
 // 1. AUTHENTICATION & ADMIN PIN SECURITY
@@ -113,32 +115,36 @@ app.get('/api/products', (req, res) => {
 });
 
 app.post('/api/products', (req, res) => {
-  const { name, category, price, sizes, image } = req.body;
+  const { name, category, price, sizes, image, hasSpice, flavors } = req.body;
   const query = `
-    INSERT INTO products (name, category, price, sizes, image)
-    VALUES (?, ?, ?, ?, ?)
+    INSERT INTO products (name, category, price, sizes, image, hasSpice, flavors)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   db.run(
     query,
-    [name, category, price, sizes ? JSON.stringify(sizes) : null, image || null],
+    [name, category, price, sizes ? JSON.stringify(sizes) : null, image || null, hasSpice ? 1 : 0, Array.isArray(flavors) && flavors.length > 0 ? JSON.stringify(flavors) : null],
     function(err) {
       if (err) return res.status(500).json({ error: err.message });
-      res.json({ id: this.lastID, name, category, price });
+      res.json({ id: this.lastID, name, category, price, sizes, image, hasSpice, flavors });
     }
   );
 });
 
 app.put('/api/products/:id', (req, res) => {
-  const { name, category, price, sizes, image } = req.body;
-  const query = `
-    UPDATE products
-    SET name = ?, category = ?, price = ?, sizes = ?, image = ?
-    WHERE id = ?
-  `;
+  const { name, category, price, sizes, image, hasSpice, flavors } = req.body;
   db.run(
-    query,
-    [name, category, price, sizes ? JSON.stringify(sizes) : null, image || null, req.params.id],
-    function(err) {
+    `UPDATE products SET name = ?, category = ?, price = ?, sizes = ?, image = ?, hasSpice = ?, flavors = ? WHERE id = ?`,
+    [
+      name,
+      category,
+      price,
+      sizes ? JSON.stringify(sizes) : null,
+      image || null,
+      hasSpice ? 1 : 0,
+      Array.isArray(flavors) && flavors.length > 0 ? JSON.stringify(flavors) : null,
+      req.params.id
+    ],
+    function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ message: 'Product updated' });
     }

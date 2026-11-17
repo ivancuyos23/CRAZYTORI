@@ -1,504 +1,375 @@
 import React, { useState, useRef } from 'react';
+import * as api from '../../services/api';
+import { PaginationBar, showToast } from '../layout/UIFeedback';
+import AdminMenuForm, {
+  IMAGE_PRESETS,
+  DEFAULT_SNACKBOX_FLAVORS,
+  resolveProductImage,
+  compressImageFile
+} from './AdminMenuForm';
 import './AdminViews.css';
 import './AdminMenuView.css';
 
-import riceBowlImg from '../../assets/images/ricebowl.jfif';
-import snackBoxImg from '../../assets/images/snackbox.jfif';
-import spamMusubiImg from '../../assets/images/spamusubi.jpg';
+export { IMAGE_PRESETS, DEFAULT_SNACKBOX_FLAVORS, resolveProductImage };
 
-const IMAGE_PRESETS = [
-  { label: 'Rice Bowl', value: '/images/ricebowl.jfif' },
-  { label: 'Snack Box', value: '/images/snackbox.jfif' },
-  { label: 'Spamusubi', value: '/images/spamusubi.jpg' }
-];
-
-export const resolveProductImage = (product) => {
-  if (!product) return null;
-  const rawImg = product.image || '';
-  if (rawImg === 'none') return null;
-  if (rawImg.startsWith('data:image') || rawImg.startsWith('http')) return rawImg;
-
-  const pImg = rawImg.toLowerCase();
-  if (pImg.includes('ricebowl')) return riceBowlImg;
-  if (pImg.includes('snackbox')) return snackBoxImg;
-  if (pImg.includes('spamusubi')) return spamMusubiImg;
-
-  const pName = (product.name || '').toLowerCase();
-  if (pName.includes('rice bowl') || pName.includes('katsudon')) return riceBowlImg;
-  if (pName.includes('snack box')) return snackBoxImg;
-  if (pName.includes('spamusubi')) return spamMusubiImg;
-
-  return null;
-};
-
-// Compress uploaded image so SQLite and localStorage stay fast
-const compressImageFile = (file, callback) => {
-  const reader = new FileReader();
-  reader.onload = (event) => {
-    const imgObj = new Image();
-    imgObj.onload = () => {
-      const canvas = document.createElement('canvas');
-      const maxDim = 360;
-      let width = imgObj.width;
-      let height = imgObj.height;
-
-      if (width > height && width > maxDim) {
-        height = Math.round((height * maxDim) / width);
-        width = maxDim;
-      } else if (height > maxDim) {
-        width = Math.round((width * maxDim) / height);
-        height = maxDim;
-      }
-
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.drawImage(imgObj, 0, 0, width, height);
-      callback(canvas.toDataURL('image/jpeg', 0.82));
-    };
-    imgObj.src = event.target.result;
-  };
-  reader.readAsDataURL(file);
-};
+const MENU_ITEMS_PER_PAGE = 8;
 
 export default function AdminMenuView({
   products = [],
+  onRefreshProducts,
   onAddProduct,
   onUpdateProduct,
   onDeleteProduct
 }) {
-  const formCardRef = useRef(null);
-  const fileInputRef = useRef(null);
-  const quickRowFileRef = useRef(null);
-
   const [editingId, setEditingId] = useState(null);
-  const [quickPhotoTarget, setQuickPhotoTarget] = useState(null);
-
   const [name, setName] = useState('');
   const [category, setCategory] = useState('Food');
   const [price, setPrice] = useState('');
-  const [image, setImage] = useState('');
   const [size8oz, setSize8oz] = useState('');
   const [size16oz, setSize16oz] = useState('');
   const [size22oz, setSize22oz] = useState('');
+  const [imageValue, setImageValue] = useState('');
+  const [hasSpice, setHasSpice] = useState(false);
+  const [flavorsText, setFlavorsText] = useState('');
 
-  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterCategory, setFilterCategory] = useState('ALL');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [quickPhotoTarget, setQuickPhotoTarget] = useState(null);
 
-  const startEdit = (product) => {
-    setEditingId(product.id);
-    setName(product.name);
-    setCategory(product.category || 'Food');
-    setPrice(String(product.price || ''));
-    setImage(product.image || '');
-    const sizesObj = product.sizes && typeof product.sizes === 'object' ? product.sizes : {};
-    setSize8oz(sizesObj['8oz'] ? String(sizesObj['8oz']) : '');
-    setSize16oz(sizesObj['16oz'] ? String(sizesObj['16oz']) : '');
-    setSize22oz(sizesObj['22oz'] ? String(sizesObj['22oz']) : '');
+  const quickFileInputRef = useRef(null);
+  const formCardRef = useRef(null);
 
-    formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  };
+  const saveNewProduct = onAddProduct || api.createProductAPI || api.addProductAPI;
+  const saveUpdatedProduct = onUpdateProduct || api.updateProductAPI;
+  const removeProduct = onDeleteProduct || api.deleteProductAPI;
 
   const resetForm = () => {
     setEditingId(null);
     setName('');
     setCategory('Food');
     setPrice('');
-    setImage('');
     setSize8oz('');
     setSize16oz('');
     setSize22oz('');
-    if (fileInputRef.current) fileInputRef.current.value = '';
+    setImageValue('');
+    setHasSpice(false);
+    setFlavorsText('');
   };
 
-  // Upload photo inside the Add/Edit form
-  const handleFileUpload = (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    compressImageFile(file, (compressedDataUrl) => {
-      setImage(compressedDataUrl);
-    });
+  const startEdit = (product) => {
+    setEditingId(product.id);
+    setName(product.name || '');
+    setCategory(product.category || 'Food');
+    setPrice(String(product.price ?? ''));
+
+    const sizes = product.sizes || {};
+    setSize8oz(sizes['8oz'] ? String(sizes['8oz']) : '');
+    setSize16oz(sizes['16oz'] ? String(sizes['16oz']) : '');
+    setSize22oz(sizes['22oz'] ? String(sizes['22oz']) : '');
+    setImageValue(product.image || '');
+
+    const lower = (product.name || '').toLowerCase();
+    const isRB = lower.includes('rice bowl');
+    const isSB = lower.includes('snack box');
+    setHasSpice(
+      product.hasSpice !== undefined ? Boolean(product.hasSpice) : isRB || isSB
+    );
+
+    const existingFlavors = Array.isArray(product.flavors)
+      ? product.flavors
+      : isSB
+      ? DEFAULT_SNACKBOX_FLAVORS
+      : [];
+    setFlavorsText(existingFlavors.join(', '));
+
+    formCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  // 1-Tap Quick Photo Upload directly from any row in the Menu List
-  const triggerQuickRowPhoto = (product) => {
-    setQuickPhotoTarget(product);
-    quickRowFileRef.current?.click();
-  };
-
-  const handleQuickRowFileChange = (e) => {
+  const handleQuickRowPhotoUpload = async (e) => {
     const file = e.target.files?.[0];
     if (!file || !quickPhotoTarget) return;
-
-    compressImageFile(file, async (compressedDataUrl) => {
-      await onUpdateProduct(quickPhotoTarget.id, {
-        name: quickPhotoTarget.name,
-        category: quickPhotoTarget.category,
-        price: quickPhotoTarget.price,
-        sizes: quickPhotoTarget.sizes || null,
-        image: compressedDataUrl
+    try {
+      const dataUrl = await compressImageFile(file);
+      await saveUpdatedProduct(quickPhotoTarget.id, {
+        ...quickPhotoTarget,
+        image: dataUrl
       });
-      if (editingId === quickPhotoTarget.id) setImage(compressedDataUrl);
-      setQuickPhotoTarget(null);
-      if (quickRowFileRef.current) quickRowFileRef.current.value = '';
-    });
-  };
-
-  const handleQuickDeleteImage = async (product) => {
-    if (!window.confirm(`Remove photo from "${product.name}"?`)) return;
-    await onUpdateProduct(product.id, {
-      name: product.name,
-      category: product.category,
-      price: product.price,
-      sizes: product.sizes || null,
-      image: 'none'
-    });
-    if (editingId === product.id) setImage('none');
+      if (onRefreshProducts) await onRefreshProducts();
+      showToast(`Updated photo for "${quickPhotoTarget.name}"!`, 'success');
+    } catch {
+      showToast('Failed to update product photo.', 'error');
+    }
+    setQuickPhotoTarget(null);
+    e.target.value = '';
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!name.trim() || !price) return;
+    if (!name.trim()) return showToast('Please enter an item name.', 'error');
 
-    let sizesPayload = null;
+    let sizesObj = null;
     if (category === 'Drinks') {
-      const builtSizes = {};
-      if (size8oz) builtSizes['8oz'] = parseFloat(size8oz);
-      if (size16oz) builtSizes['16oz'] = parseFloat(size16oz);
-      if (size22oz) builtSizes['22oz'] = parseFloat(size22oz);
-      if (Object.keys(builtSizes).length > 0) sizesPayload = builtSizes;
+      const temp = {};
+      if (size8oz !== '' && !isNaN(Number(size8oz))) temp['8oz'] = Number(size8oz);
+      if (size16oz !== '' && !isNaN(Number(size16oz))) temp['16oz'] = Number(size16oz);
+      if (size22oz !== '' && !isNaN(Number(size22oz))) temp['22oz'] = Number(size22oz);
+      if (Object.keys(temp).length > 0) sizesObj = temp;
     }
+
+    const computedBasePrice =
+      price !== '' && !isNaN(Number(price))
+        ? Number(price)
+        : sizesObj
+        ? Object.values(sizesObj)[0]
+        : 0;
+
+    const parsedFlavors =
+      category === 'Food'
+        ? flavorsText
+            .split(',')
+            .map(f => f.trim())
+            .filter(Boolean)
+        : [];
 
     const payload = {
       name: name.trim(),
       category,
-      price: parseFloat(price),
-      sizes: sizesPayload,
-      image: image.trim() || null
+      price: computedBasePrice,
+      sizes: sizesObj,
+      image: imageValue || null,
+      hasSpice: category === 'Food' ? Boolean(hasSpice) : false,
+      flavors: parsedFlavors.length > 0 ? parsedFlavors : null
     };
 
-    if (editingId) {
-      await onUpdateProduct(editingId, payload);
-    } else {
-      await onAddProduct(payload);
+    try {
+      if (editingId) {
+        await saveUpdatedProduct(editingId, payload);
+        showToast(`Updated "${payload.name}"!`, 'success');
+      } else {
+        await saveNewProduct(payload);
+        showToast(`Added "${payload.name}" to Menu!`, 'success');
+      }
+      resetForm();
+      if (onRefreshProducts) await onRefreshProducts();
+    } catch (err) {
+      showToast('Failed to save menu item: ' + err.message, 'error');
     }
-    resetForm();
   };
 
-  const previewThumb = resolveProductImage({ name, category, image });
+  const handleDelete = async (id, itemName) => {
+    if (!window.confirm(`Delete "${itemName}" from the menu?`)) return;
+    await removeProduct(id);
+    if (editingId === id) resetForm();
+    if (onRefreshProducts) await onRefreshProducts();
+    showToast(`Deleted "${itemName}" from menu.`, 'info');
+  };
+
   const foodCount = products.filter(p => p.category === 'Food').length;
   const drinkCount = products.filter(p => p.category === 'Drinks').length;
 
   const filteredProducts = products.filter(p => {
-    const matchesCat = filterCategory === 'All' || p.category === filterCategory;
-    const matchesSearch = !searchQuery || p.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCat =
+      filterCategory === 'ALL' ||
+      (p.category || '').toLowerCase() === filterCategory.toLowerCase();
+    const matchesSearch = (p.name || '')
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
     return matchesCat && matchesSearch;
   });
 
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredProducts.length / MENU_ITEMS_PER_PAGE)
+  );
+  const safePage = Math.min(currentPage, totalPages);
+  const pagedProducts = filteredProducts.slice(
+    (safePage - 1) * MENU_ITEMS_PER_PAGE,
+    safePage * MENU_ITEMS_PER_PAGE
+  );
+
   return (
     <div className="admin-page-container">
-      {/* Hidden input for 1-tap photo changes directly from the Menu List */}
       <input
-        ref={quickRowFileRef}
+        ref={quickFileInputRef}
         type="file"
         accept="image/*"
-        onChange={handleQuickRowFileChange}
         style={{ display: 'none' }}
+        onChange={handleQuickRowPhotoUpload}
       />
 
       <div className="admin-header-bar">
-        <h2>Menu Manager</h2>
-        {editingId && (
-          <button type="button" className="btn-secondary-sm" onClick={resetForm}>
-            + New Item Mode
-          </button>
-        )}
+        <div>
+          <h2>Menu Manager</h2>
+          <p className="admin-subtitle">
+            Add, edit, or customize prices, drink sizes, spice choices, and Snack Box flavors
+          </p>
+        </div>
+        <span className="ledger-badge">
+          {products.length} Total ({foodCount} Food • {drinkCount} Drinks)
+        </span>
       </div>
 
       <div className="admin-two-col">
-        {/* LEFT: ADD / EDIT FORM */}
-        <div ref={formCardRef} className="admin-card report-sheet">
+        <AdminMenuForm
+          formCardRef={formCardRef}
+          editingId={editingId}
+          name={name}
+          setName={setName}
+          category={category}
+          setCategory={setCategory}
+          price={price}
+          setPrice={setPrice}
+          size8oz={size8oz}
+          setSize8oz={setSize8oz}
+          size16oz={size16oz}
+          setSize16oz={setSize16oz}
+          size22oz={size22oz}
+          setSize22oz={setSize22oz}
+          imageValue={imageValue}
+          setImageValue={setImageValue}
+          hasSpice={hasSpice}
+          setHasSpice={setHasSpice}
+          flavorsText={flavorsText}
+          setFlavorsText={setFlavorsText}
+          onSubmit={handleSubmit}
+          onReset={resetForm}
+        />
+
+        <div className="admin-card report-sheet">
           <div className="report-sheet-header">
-            <h3>{editingId ? `Editing: ${name}` : 'Add Menu Item'}</h3>
-            {editingId && (
-              <button type="button" className="btn-secondary-sm" onClick={resetForm}>
-                ✕ Cancel
-              </button>
-            )}
+            <div>
+              <span className="report-tag">ACTIVE CATALOG</span>
+              <h3>Menu Items ({filteredProducts.length})</h3>
+            </div>
+            <span className="ledger-badge">
+              Page {safePage} of {totalPages}
+            </span>
           </div>
 
-          <form onSubmit={handleSubmit} className="admin-form">
-            <label>Category</label>
-            <div className="menu-category-toggle">
-              <button
-                type="button"
-                className={`tier-select-card ${category === 'Food' ? 'active' : ''}`}
-                onClick={() => setCategory('Food')}
-              >
-                <div className="tier-card-top">
-                  <strong>🍱 Food</strong>
-                  <span className="tier-radio">{category === 'Food' ? '●' : '○'}</span>
-                </div>
-              </button>
-              <button
-                type="button"
-                className={`tier-select-card ${category === 'Drinks' ? 'active' : ''}`}
-                onClick={() => setCategory('Drinks')}
-              >
-                <div className="tier-card-top">
-                  <strong>🥤 Drinks</strong>
-                  <span className="tier-radio">{category === 'Drinks' ? '●' : '○'}</span>
-                </div>
-              </button>
+          <div className="tx-filter-bar">
+            <div className="tx-payment-pills">
+              {[
+                { key: 'ALL', label: `All (${products.length})` },
+                { key: 'Food', label: `🍱 Food (${foodCount})` },
+                { key: 'Drinks', label: `🥤 Drinks (${drinkCount})` }
+              ].map(tab => (
+                <button
+                  key={tab.key}
+                  type="button"
+                  className={
+                    filterCategory === tab.key ? 'tx-tab-pill active' : 'tx-tab-pill'
+                  }
+                  onClick={() => {
+                    setFilterCategory(tab.key);
+                    setCurrentPage(1);
+                  }}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            <div className="form-split-row">
-              <div>
-                <label>Item Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Rice Bowl - Signature"
-                  value={name}
-                  onChange={e => setName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <label>Base Price (₱)</label>
-                <input
-                  type="number"
-                  step="any"
-                  min="1"
-                  placeholder="0.00"
-                  value={price}
-                  onChange={e => setPrice(e.target.value)}
-                  required
-                />
-              </div>
-            </div>
-
-            {category === 'Drinks' && (
-              <div className="drink-sizes-box">
-                <div className="ledger-section-title">
-                  <span>Cup Sizes (Optional)</span>
-                </div>
-                <div className="size-inputs-grid">
-                  <div>
-                    <label>8oz</label>
-                    <input type="number" step="any" placeholder="₱" value={size8oz} onChange={e => setSize8oz(e.target.value)} />
-                  </div>
-                  <div>
-                    <label>16oz</label>
-                    <input type="number" step="any" placeholder="₱" value={size16oz} onChange={e => setSize16oz(e.target.value)} />
-                  </div>
-                  <div>
-                    <label>22oz</label>
-                    <input type="number" step="any" placeholder="₱" value={size22oz} onChange={e => setSize22oz(e.target.value)} />
-                  </div>
-                </div>
-              </div>
-            )}
-
-            <label>Photo</label>
-            <div className="image-manager-box">
-              <div
-                className="image-preview-frame clickable-thumb"
-                onClick={() => fileInputRef.current?.click()}
-                title="Tap to upload photo"
-              >
-                {previewThumb ? (
-                  <img src={previewThumb} alt="Preview" />
-                ) : (
-                  <span>{category === 'Drinks' ? '🥤' : '🍱'}</span>
-                )}
-              </div>
-
-              <div className="image-manager-controls">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                  style={{ display: 'none' }}
-                />
-
-                <div className="image-btn-row">
-                  <button
-                    type="button"
-                    className="btn-secondary-sm"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    📷 {previewThumb ? 'Change' : 'Upload'}
-                  </button>
-
-                  {previewThumb && (
-                    <button
-                      type="button"
-                      className="btn-danger-sm"
-                      onClick={() => setImage('none')}
-                    >
-                      🗑️ Remove
-                    </button>
-                  )}
-                </div>
-
-                <div className="preset-chips-row">
-                  {IMAGE_PRESETS.map(preset => (
-                    <button
-                      type="button"
-                      key={preset.label}
-                      className={`preset-chip ${image === preset.value ? 'active' : ''}`}
-                      onClick={() => setImage(preset.value)}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="form-btn-row" style={{ marginTop: '6px' }}>
-              <button type="submit" className="btn-primary-amber" style={{ flex: 1 }}>
-                {editingId ? '✓ Save Changes' : '+ Add to Menu'}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        {/* RIGHT: EASY-TO-NAVIGATE MENU LIST */}
-        <div className="admin-card report-sheet">
-          <div className="menu-nav-top">
-            {/* 1-Tap Category Filter Tabs */}
-            <div className="menu-filter-pills">
-              <button
-                type="button"
-                className={`menu-tab-pill ${filterCategory === 'All' ? 'active' : ''}`}
-                onClick={() => setFilterCategory('All')}
-              >
-                All <span>{products.length}</span>
-              </button>
-              <button
-                type="button"
-                className={`menu-tab-pill ${filterCategory === 'Food' ? 'active' : ''}`}
-                onClick={() => setFilterCategory('Food')}
-              >
-                🍱 Food <span>{foodCount}</span>
-              </button>
-              <button
-                type="button"
-                className={`menu-tab-pill ${filterCategory === 'Drinks' ? 'active' : ''}`}
-                onClick={() => setFilterCategory('Drinks')}
-              >
-                🥤 Drinks <span>{drinkCount}</span>
-              </button>
-            </div>
-
-            {/* Instant Search Bar with Clear Button */}
-            <div className="menu-search-box">
+            <div className="tx-search-box">
               <input
                 type="text"
-                placeholder="🔍 Search item..."
+                placeholder="🔍 Search menu item..."
                 value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
+                onChange={e => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
               />
-              {searchQuery && (
-                <button
-                  type="button"
-                  className="clear-search-btn"
-                  onClick={() => setSearchQuery('')}
-                >
-                  ✕
-                </button>
-              )}
             </div>
           </div>
 
-          {/* Scrollable Card List (No Horizontal Scrolling Needed) */}
-          <div className="menu-cards-scroll">
-            {filteredProducts.length === 0 ? (
-              <div className="ledger-empty">No matching menu items.</div>
-            ) : (
-              filteredProducts.map(p => {
-                const thumb = resolveProductImage(p);
-                const hasSizes = p.sizes && typeof p.sizes === 'object' && Object.keys(p.sizes).length > 0;
-                const isEditing = editingId === p.id;
+          <div className="tx-ledger-list">
+            {pagedProducts.map(item => {
+              const thumb = resolveProductImage(item);
+              const lower = (item.name || '').toLowerCase();
+              const itemHasSpice =
+                item.hasSpice !== undefined
+                  ? Boolean(item.hasSpice)
+                  : lower.includes('rice bowl') || lower.includes('snack box');
+              const itemFlavors = Array.isArray(item.flavors)
+                ? item.flavors
+                : lower.includes('snack box')
+                ? DEFAULT_SNACKBOX_FLAVORS
+                : [];
 
-                return (
-                  <div
-                    key={p.id || p.name}
-                    className={`menu-list-card ${isEditing ? 'active-edit' : ''}`}
-                  >
-                    {/* Left: Tap Photo to Change Immediately */}
-                    <div
-                      className="menu-card-thumb"
-                      onClick={() => triggerQuickRowPhoto(p)}
-                      title="Tap to change photo"
-                    >
-                      {thumb ? (
-                        <img src={thumb} alt={p.name} />
-                      ) : (
-                        <span>{p.category === 'Drinks' ? '🥤' : '🍱'}</span>
-                      )}
-                      <small className="thumb-cam-badge">📷</small>
-                    </div>
-
-                    {/* Middle: Name, Category & Price / Cup Sizes */}
-                    <div className="menu-card-info" onClick={() => startEdit(p)}>
-                      <div className="menu-card-title-row">
-                        <strong>{p.name}</strong>
-                        <span className="menu-cat-tag">{p.category}</span>
+              return (
+                <div key={item.id} className="tx-order-card">
+                  <div className="tx-card-top">
+                    <div className="tx-id-group">
+                      <div
+                        className="image-preview-frame"
+                        style={{ width: '44px', height: '44px', cursor: 'pointer' }}
+                        title="Tap to change photo"
+                        onClick={() => {
+                          setQuickPhotoTarget(item);
+                          quickFileInputRef.current?.click();
+                        }}
+                      >
+                        {thumb ? (
+                          <img
+                            src={thumb}
+                            alt={item.name}
+                            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                          />
+                        ) : (
+                          <span>{item.category === 'Drinks' ? '🥤' : '🍱'}</span>
+                        )}
                       </div>
-
-                      {hasSizes ? (
-                        <div className="size-pills-wrap">
-                          {Object.entries(p.sizes).map(([sz, pr]) => (
-                            <span key={sz} className="item-pill">
-                              {sz}: <strong>₱{pr}</strong>
+                      <div>
+                        <strong style={{ fontSize: '0.92rem' }}>{item.name}</strong>
+                        <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginTop: '4px' }}>
+                          {item.sizes &&
+                            Object.entries(item.sizes).map(([sz, pr]) => (
+                              <span key={sz} className="method-badge">
+                                {sz}: ₱{pr}
+                              </span>
+                            ))}
+                          {itemHasSpice && (
+                            <span className="method-badge">🌶️ Original / Spicy</span>
+                          )}
+                          {itemFlavors.length > 0 && (
+                            <span className="method-badge">
+                              🧀 {itemFlavors.length} Flavors
                             </span>
-                          ))}
+                          )}
                         </div>
-                      ) : (
-                        <div className="menu-single-price">
-                          ₱{Number(p.price || 0).toFixed(2)}
-                        </div>
-                      )}
+                      </div>
                     </div>
 
-                    {/* Right: Direct Action Buttons */}
-                    <div className="menu-card-actions">
+                    <div className="tx-actions-group" style={{ alignItems: 'center' }}>
+                      <span className="tx-serving-badge">₱{item.price}</span>
                       <button
                         type="button"
                         className="btn-secondary-sm"
-                        onClick={() => startEdit(p)}
+                        onClick={() => startEdit(item)}
                       >
                         ✏️ Edit
                       </button>
-
-                      {thumb && (
-                        <button
-                          type="button"
-                          className="btn-secondary-sm"
-                          onClick={() => handleQuickDeleteImage(p)}
-                          title="Remove photo"
-                        >
-                          🚫📷
-                        </button>
-                      )}
-
                       <button
                         type="button"
                         className="btn-danger-sm"
-                        onClick={() => window.confirm(`Delete "${p.name}"?`) && onDeleteProduct(p.id)}
-                        title="Delete item"
+                        onClick={() => handleDelete(item.id, item.name)}
                       >
                         🗑️
                       </button>
                     </div>
                   </div>
-                );
-              })
-            )}
+                </div>
+              );
+            })}
           </div>
+
+          <PaginationBar
+            currentPage={safePage}
+            totalItems={filteredProducts.length}
+            pageSize={MENU_ITEMS_PER_PAGE}
+            onPageChange={setCurrentPage}
+          />
         </div>
       </div>
     </div>

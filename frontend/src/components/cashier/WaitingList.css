@@ -1,0 +1,198 @@
+.waiting-page-container {
+  flex: 1;
+  padding: 16px;
+  overflow-y: auto;
+  background: #f8fafc;
+}
+
+.waiting-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 16px;
+  background: #ffffff;
+  padding: 14px 18px;
+  border-radius: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.waiting-header h2 {
+  margin: 0 0 4px 0;
+  font-size: 1.15rem;
+  color: #0f172a;
+}
+
+.waiting-header p {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #64748b;
+}
+
+.waiting-count-pill {
+  background: #0f172a;
+  color: #fbbf24;
+  font-weight: 800;
+  font-size: 0.85rem;
+  padding: 6px 14px;
+  border-radius: 999px;
+}
+
+.waiting-empty-state {
+  background: #ffffff;
+  border: 1px dashed #cbd5e1;
+  border-radius: 12px;
+  padding: 48px 20px;
+  text-align: center;
+  color: #64748b;
+}
+
+.waiting-empty-state span {
+  font-size: 2.2rem;
+}
+
+.waiting-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 14px;
+}
+
+.waiting-card {
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.05);
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+.waiting-card.overdue-red {
+  border-color: #dc2626;
+  background: #fef2f2;
+}
+
+.waiting-card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  border-bottom: 1px solid #e2e8f0;
+  padding-bottom: 10px;
+}
+
+.waiting-serving-badge {
+  display: inline-block;
+  background: #fef3c7;
+  color: #0f172a;
+  border: 1px solid #f59e0b;
+  font-weight: 900;
+  font-size: 0.82rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.waiting-order-id {
+  font-size: 0.72rem;
+  color: #64748b;
+  margin-top: 4px;
+}
+
+/* Timer Badge — turns RED when >= 5:00 */
+.waiting-timer-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: #f1f5f9;
+  color: #0f172a;
+  border: 1.5px solid #cbd5e1;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.waiting-timer-badge.timer-red {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #991b1b;
+  animation: pulseRed 1.2s infinite;
+}
+
+@keyframes pulseRed {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.04); }
+}
+
+.waiting-items-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.waiting-item-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.waiting-qty {
+  font-weight: 900;
+  color: #b45309;
+  min-width: 24px;
+}
+
+.waiting-name {
+  font-weight: 700;
+}
+
+.waiting-card-footer {
+  border-top: 1px solid #e2e8f0;
+  padding-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.waiting-meta {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: #475569;
+}
+
+.waiting-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.waiting-cancel-btn {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid #fecaca;
+  background: #fee2e2;
+  color: #b91c1c;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.waiting-done-btn {
+  flex: 1;
+  padding: 11px;
+  border-radius: 8px;
+  border: none;
+  background: #16a34a;
+  color: #ffffff;
+  font-weight: 900;
+  font-size: 0.92rem;
+  cursor: pointer;
+}
+
+.waiting-done-btn:hover {
+  background: #15803d;
+}

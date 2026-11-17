@@ -1,275 +1,241 @@
-/* --- Expenses Form & Sleek Single-Line Ledger Styles --- */
-.expense-header-actions {
+/* =========================================================
+   EXPENSES & OVERHEAD — HIGH-CONTRAST 3-TIER TRACKER
+   ========================================================= */
+.exp-header-actions {
   display: flex;
   align-items: center;
   gap: 8px;
+  flex-wrap: wrap;
 }
 
-.expense-header-actions .admin-date-input {
-  width: auto;
-  margin: 0;
+.exp-month-picker {
+  width: auto !important;
+  margin: 0 !important;
 }
 
-.tier-selector-stack {
+.exp-form-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.exp-field-group {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  min-width: 0;
 }
 
-.tier-select-card {
+.exp-label {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #0f172a;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* 3-Tier Selector Buttons */
+.exp-tier-selector {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.exp-tier-btn {
+  height: 42px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 2px solid #64748b;
   background: #f8fafc;
-  border: 1.5px solid #cbd5e1;
-  border-radius: 8px;
-  padding: 10px 12px;
-  text-align: left;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 900;
   cursor: pointer;
+  white-space: nowrap;
   transition: all 0.15s ease;
 }
 
-.tier-select-card.active {
-  background: #fef3c7;
+.exp-tier-btn.active {
+  background: #0f172a;
+  color: #ffb300;
   border-color: #0f172a;
+  box-shadow: 0 3px 0 #ffb300;
 }
 
-.tier-card-top {
+/* Quick-Fill Preset Chips Box */
+.exp-presets-box {
+  background: #f8fafc;
+  border: 2px solid #cbd5e1;
+  border-left: 5px solid #ffb300;
+  border-radius: 12px;
+  padding: 10px 12px;
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 0.85rem;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.exp-preset-title {
+  font-size: 0.74rem;
+  font-weight: 900;
   color: #0f172a;
-}
-
-.tier-radio {
-  font-size: 0.72rem;
-  font-weight: 800;
   text-transform: uppercase;
-  color: #b45309;
 }
 
-.preset-chips-row {
+.exp-preset-chips {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-  margin-bottom: 4px;
 }
 
-.preset-chip {
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  color: #334155;
+.exp-preset-chip {
+  background: #ffffff;
+  border: 1.5px solid #94a3b8;
+  color: #0f172a;
   padding: 5px 10px;
-  border-radius: 6px;
+  border-radius: 999px;
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   cursor: pointer;
 }
 
-.preset-chip.active {
-  background: #0f172a;
-  color: #ffffff;
+.exp-preset-chip.active,
+.exp-preset-chip:hover {
+  background: #ffb300;
   border-color: #0f172a;
+  font-weight: 900;
 }
 
-/* --- Right Column: Filter Bar --- */
-.expense-nav-top {
+.exp-split-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.exp-submit-btn {
+  width: 100%;
+  height: 46px;
+  background: #ffb300;
+  color: #0f172a;
+  border: 2.5px solid #0f172a;
+  box-shadow: 0 4px 0 #0f172a;
+  border-radius: 10px;
+  font-size: 0.94rem;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.exp-submit-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 2px 0 #0f172a;
+}
+
+/* Right Card: Expense Filter Bar & Ledger Rows */
+.exp-filter-bar {
+  background: #f1f5f9;
+  border: 2px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
-  padding-bottom: 12px;
-  border-bottom: 1.5px solid #e2e8f0;
 }
 
-.expense-filter-pills {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
+.exp-tier-pills {
+  display: flex;
   gap: 6px;
-}
-
-.exp-tab-pill {
-  padding: 7px 6px;
-  border-radius: 8px;
-  border: 1px solid #cbd5e1;
-  background: #f8fafc;
-  color: #475569;
-  font-size: 0.78rem;
-  font-weight: 800;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.exp-tab-pill span {
-  background: #e2e8f0;
-  color: #0f172a;
-  padding: 1px 6px;
-  border-radius: 999px;
-  font-size: 0.68rem;
-}
-
-.exp-tab-pill.active {
-  background: #0f172a;
-  color: #ffffff;
-  border-color: #0f172a;
-}
-
-.exp-tab-pill.active span {
-  background: #f59e0b;
-  color: #0f172a;
-}
-
-.expense-search-row {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  width: 100%;
-}
-
-.expense-search-box {
-  position: relative;
-  flex: 1;
-  display: flex;
-  align-items: center;
-  min-width: 0;
-}
-
-.expense-search-box input {
-  width: 100%;
-  padding: 8px 52px 8px 12px;
-  border: 1px solid #cbd5e1;
-  border-radius: 8px;
-  font-size: 0.85rem;
-  background: #ffffff;
-  color: #0f172a;
-  margin: 0;
-  outline: none;
-}
-
-.expense-search-box input:focus {
-  border-color: #0f172a;
-}
-
-.clear-search-btn {
-  position: absolute;
-  right: 6px;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  padding: 3px 7px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: #475569;
-  cursor: pointer;
-}
-
-.day-filter-wrap {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex-shrink: 0;
-}
-
-.day-filter-wrap .admin-date-input {
-  width: auto;
-  margin: 0;
-}
-
-/* --- Compact Single-Line Expense Ledger --- */
-.expense-ledger-list {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid #e2e8f0;
-  border-radius: 10px;
-  background: #ffffff;
-  max-height: 440px;
-  overflow-y: auto;
+  overflow-x: auto;
+  scrollbar-width: none;
   -webkit-overflow-scrolling: touch;
 }
 
-.exp-ledger-row {
+.exp-tier-pills::-webkit-scrollbar {
+  display: none;
+}
+
+.exp-search-date-row {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 10px 14px;
-  border-bottom: 1px solid #f1f5f9;
-  border-left: 4px solid #cbd5e1;
-  text-align: left;
-  transition: background 0.12s ease;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
-.exp-ledger-row:last-child {
-  border-bottom: none;
-}
-
-.exp-ledger-row:hover {
-  background: #f8fafc;
-}
-
-/* Subtle Left Color Indicator per Category Tier */
-.exp-ledger-row.tier-daily {
-  border-left-color: #f59e0b;
-}
-
-.exp-ledger-row.tier-overhead {
-  border-left-color: #0f172a;
-}
-
-.exp-ledger-row.tier-major {
-  border-left-color: #2563eb;
-}
-
-.exp-ledger-row.active-edit {
-  background: #fffbeb;
-  border-left-color: #d97706;
-}
-
-/* Left Side: Item Title & Date/Category Subline */
-.exp-row-main {
+.exp-search-input {
   flex: 1;
-  min-width: 0;
+  min-width: 160px;
+  margin: 0 !important;
+}
+
+.exp-day-input {
+  width: auto !important;
+  margin: 0 !important;
+}
+
+.exp-ledger-list {
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  text-align: left;
-  gap: 2px;
-  cursor: pointer;
+  gap: 8px;
+  max-height: 480px;
+  overflow-y: auto;
+  padding-right: 2px;
 }
 
-.exp-row-title {
-  font-size: 0.9rem;
-  font-weight: 800;
-  color: #0f172a;
+.exp-ledger-row {
+  background: #ffffff;
+  border: 2px solid #cbd5e1;
+  border-left: 6px solid #dc2626;
+  border-radius: 12px;
+  padding: 10px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+.exp-ledger-row.is-editing {
+  background: #fffdf5;
+  border-color: #0f172a;
+  border-left: 6px solid #ffb300;
+}
+
+.exp-row-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.exp-date-pill {
+  background: #0f172a;
+  color: #ffb300;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 4px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.exp-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
   text-align: left;
-  line-height: 1.25;
+}
+
+.exp-row-info strong {
+  font-size: 0.9rem;
+  font-weight: 900;
+  color: #0f172a;
   word-break: break-word;
 }
 
-.exp-row-sub {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  color: #64748b;
-  font-weight: 600;
-}
-
-.exp-row-date {
-  color: #475569;
-  font-weight: 700;
-}
-
-.exp-row-dot {
-  color: #cbd5e1;
-}
-
-.exp-row-cat {
+.exp-cat-sub {
+  font-size: 0.72rem;
+  font-weight: 800;
   color: #64748b;
 }
 
-/* Right Side: Amount & Buttons on One Line */
 .exp-row-right {
   display: flex;
   align-items: center;
@@ -278,83 +244,32 @@
 }
 
 .exp-row-amount {
-  font-size: 0.92rem;
+  font-size: 0.96rem;
   font-weight: 900;
   color: #dc2626;
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .exp-row-actions {
   display: flex;
-  align-items: center;
-  gap: 5px;
+  gap: 6px;
 }
 
-.exp-btn-edit,
-.exp-btn-del {
-  padding: 5px 9px;
-  border-radius: 6px;
-  font-size: 0.74rem;
-  font-weight: 700;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-.exp-btn-edit {
-  background: #f1f5f9;
-  color: #0f172a;
-  border: 1px solid #cbd5e1;
-}
-
-.exp-btn-edit:hover {
-  background: #e2e8f0;
-}
-
-.exp-btn-del {
-  background: #fef2f2;
-  color: #dc2626;
-  border: 1px solid #fecaca;
-}
-
-.exp-btn-del:hover {
-  background: #fee2e2;
-}
-
-/* Mobile Adjustments */
-@media (max-width: 560px) {
-  .expense-filter-pills {
-    grid-template-columns: repeat(2, 1fr);
+@media (max-width: 600px) {
+  .exp-tier-selector {
+    grid-template-columns: 1fr;
   }
 
-  .expense-search-row {
-    flex-direction: column;
-    align-items: stretch;
+  .exp-split-row {
+    grid-template-columns: 1fr;
   }
 
-  .day-filter-wrap {
+  .exp-header-actions {
     width: 100%;
   }
 
-  .day-filter-wrap .admin-date-input {
+  .exp-month-picker {
     flex: 1;
-  }
-
-  .exp-ledger-row {
-    padding: 9px 10px;
-    gap: 8px;
-  }
-
-  .exp-row-right {
-    gap: 6px;
-  }
-
-  .exp-row-amount {
-    font-size: 0.85rem;
-  }
-
-  .exp-btn-edit,
-  .exp-btn-del {
-    padding: 4px 7px;
-    font-size: 0.7rem;
   }
 }

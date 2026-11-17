@@ -327,62 +327,109 @@ export default function AdminDSRView({
       </div>
 
       {/* Print / Export Selection Modal */}
+{/* ================= HIGH-CONTRAST PRINT & EXPORT MODAL ================= */}
       {showPrintModal && (
         <div className="modal-backdrop" onClick={() => setShowPrintModal(false)}>
-          <div className="modal-card print-options-modal" onClick={e => e.stopPropagation()}>
+          <div
+            className="modal-card print-options-modal"
+            onClick={e => e.stopPropagation()}
+          >
+            {/* Dark Header Banner with Gold Underline */}
             <div className="print-modal-header">
-              <h3>Print / Export Report</h3>
+              <div>
+                <span className="print-modal-tag">FINANCIAL REPORT EXPORT</span>
+                <h3>Print or Download Report</h3>
+              </div>
               <button
                 type="button"
-                className="close-x-btn"
+                className="print-close-btn"
                 onClick={() => setShowPrintModal(false)}
               >
                 ✕
               </button>
             </div>
 
+            {/* Target Date & Month Summary Pill */}
+            <div className="print-summary-strip">
+              <div>
+                <span>DSR Date</span>
+                <strong>{activeDate}</strong>
+              </div>
+              <div className="print-summary-divider" />
+              <div>
+                <span>P&L Month</span>
+                <strong>{activeMonth}</strong>
+              </div>
+            </div>
+
+            {/* Step 1: Choose Format (PDF vs Excel) */}
             <div className="print-option-group">
-              <label>1. Choose Format</label>
+              <label>1. Select Export Format</label>
               <div className="format-choice-grid">
                 <button
                   type="button"
-                  className={`format-choice-btn ${exportFormat === 'pdf' ? 'active' : ''}`}
+                  className={
+                    exportFormat === 'pdf'
+                      ? 'format-choice-btn active'
+                      : 'format-choice-btn'
+                  }
                   onClick={() => setExportFormat('pdf')}
                 >
-                  <span>📄</span>
+                  <span className="format-icon">📄</span>
                   <strong>PDF / Print</strong>
+                  <small>Branded layout</small>
                 </button>
+
                 <button
                   type="button"
-                  className={`format-choice-btn ${exportFormat === 'excel' ? 'active' : ''}`}
+                  className={
+                    exportFormat === 'excel'
+                      ? 'format-choice-btn active'
+                      : 'format-choice-btn'
+                  }
                   onClick={() => setExportFormat('excel')}
                 >
-                  <span>📊</span>
+                  <span className="format-icon">📊</span>
                   <strong>Excel (.xls)</strong>
+                  <small>Spreadsheet</small>
                 </button>
               </div>
             </div>
 
+            {/* Step 2: Choose Paper Size (Only shown for PDF) */}
             {exportFormat === 'pdf' && (
               <div className="print-option-group">
                 <label>2. Select Paper Size</label>
                 <div className="paper-size-list">
-                  {PAPER_SIZES.map(ps => (
+                  {[
+                    { key: 'A4', name: 'A4 Standard', dim: '210 × 297 mm' },
+                    { key: 'Letter', name: 'Short Bond (Letter)', dim: '8.5 × 11 in' },
+                    { key: 'Legal', name: 'Long Bond (Legal)', dim: '8.5 × 14 in' },
+                    { key: '80mm', name: 'Thermal Receipt Roll', dim: '80mm POS Slip' }
+                  ].map(sz => (
                     <button
                       type="button"
-                      key={ps.value}
-                      className={`paper-size-btn ${paperSize === ps.value ? 'active' : ''}`}
-                      onClick={() => setPaperSize(ps.value)}
+                      key={sz.key}
+                      className={
+                        paperSize === sz.key
+                          ? 'paper-size-btn active'
+                          : 'paper-size-btn'
+                      }
+                      onClick={() => setPaperSize(sz.key)}
                     >
-                      <span>{ps.label}</span>
-                      <strong>{paperSize === ps.value ? '●' : '○'}</strong>
+                      <div className="paper-size-info">
+                        <span className="paper-radio-dot" />
+                        <strong>{sz.name}</strong>
+                      </div>
+                      <span className="paper-dim-badge">{sz.dim}</span>
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
-            <div className="modal-buttons">
+            {/* Action Buttons */}
+            <div className="modal-buttons" style={{ marginTop: '4px' }}>
               <button
                 type="button"
                 className="cancel-btn"
@@ -395,7 +442,9 @@ export default function AdminDSRView({
                 className="submit-btn"
                 onClick={handleConfirmPrint}
               >
-                {exportFormat === 'pdf' ? `🖨️ Print (${paperSize})` : '⬇ Download Excel'}
+                {exportFormat === 'pdf'
+                  ? `🖨️ Print PDF (${paperSize})`
+                  : '⬇ Download Excel'}
               </button>
             </div>
           </div>

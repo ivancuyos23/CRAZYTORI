@@ -7,7 +7,6 @@ const formatPeso = (num) =>
     maximumFractionDigits: 2
   });
 
-// Compress captured photo so it saves fast in SQLite and localStorage
 const compressCanvasOrImage = (source, width, height) => {
   const canvas = document.createElement('canvas');
   const maxDim = 650;
@@ -29,23 +28,27 @@ const compressCanvasOrImage = (source, width, height) => {
   return canvas.toDataURL('image/jpeg', 0.82);
 };
 
-export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
+export default function PaymentModal({
+  subtotal = 0,
+  onClose,
+  onComplete,
+  onConfirmPayment
+}) {
   const [method, setMethod] = useState('Cash');
-  const [cashGiven, setCashGiven] = useState('');
+  const [cashGiven, setCashGiven] = useState(String(subtotal || ''));
   const [gcashRef, setGcashRef] = useState('');
   const [gcashImage, setGcashImage] = useState(null);
 
-  // Camera States
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraError, setCameraError] = useState('');
   const videoRef = useRef(null);
   const streamRef = useRef(null);
   const nativeCameraInputRef = useRef(null);
 
-  const numericCash = parseFloat(cashGiven) || 0;
+  const numericCash =
+    cashGiven === '' ? Number(subtotal || 0) : parseFloat(cashGiven) || 0;
   const change = numericCash - subtotal;
 
-  // Stop webcam/phone camera stream when modal closes or method switches
   const stopCameraStream = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -63,11 +66,9 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
     setMethod(newMethod);
   };
 
-  // Start Live Camera (or fallback to native phone camera on HTTP hotspot)
   const handleStartCamera = async () => {
     setCameraError('');
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      // Fallback for mobile browsers over HTTP hotspot
       nativeCameraInputRef.current?.click();
       return;
     }
@@ -86,12 +87,10 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
         }
       }, 50);
     } catch {
-      // If permission denied or blocked on HTTP mobile, open native phone camera
       nativeCameraInputRef.current?.click();
     }
   };
 
-  // Capture frame from Live Video Stream
   const handleCaptureFrame = () => {
     if (!videoRef.current) return;
     const video = videoRef.current;
@@ -102,7 +101,6 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
     stopCameraStream();
   };
 
-  // Capture from Native Mobile Camera / File Input Fallback
   const handleNativeFileCapture = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -129,22 +127,27 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
     }
 
     stopCameraStream();
-    onComplete({
+
+    const payload = {
       paymentMethod: method,
       cashGiven: method === 'Cash' ? numericCash : subtotal,
-      change: method === 'Cash' ? change : 0,
+      change: method === 'Cash' ? Math.max(0, change) : 0,
       gcashRef:
         method === 'GCash'
           ? gcashRef.trim() || (gcashImage ? 'Photo Attached' : null)
           : null,
       gcashImage: method === 'GCash' ? gcashImage : null
-    });
+    };
+
+    const callback = onComplete || onConfirmPayment;
+    if (typeof callback === 'function') {
+      callback(payload);
+    }
   };
 
   return (
     <div className="payment-modal-backdrop" onClick={onClose}>
       <div className="payment-modal-card" onClick={e => e.stopPropagation()}>
-        {/* Hidden Native Camera Input for Mobile Phones */}
         <input
           ref={nativeCameraInputRef}
           type="file"
@@ -166,7 +169,6 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
           <h2>₱{formatPeso(subtotal)}</h2>
         </div>
 
-        {/* Cash vs GCash Selector */}
         <div className="payment-method-selector">
           <button
             type="button"
@@ -200,7 +202,7 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
                 step="any"
                 value={cashGiven}
                 onChange={e => setCashGiven(e.target.value)}
-                placeholder="0.00"
+                placeholder={String(subtotal)}
                 autoFocus
                 className="styled-input-lg"
               />
@@ -231,7 +233,6 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
           </div>
         ) : (
           <div className="gcash-payment-section">
-            {/* Reference Number Input + Camera Trigger Row */}
             <div className="input-group">
               <label>GCash Reference No. or Capture Proof</label>
               <div className="gcash-input-cam-row">
@@ -253,7 +254,6 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
               </div>
             </div>
 
-            {/* Live Camera Viewfinder */}
             {cameraActive && (
               <div className="gcash-camera-box">
                 <video
@@ -282,7 +282,6 @@ export default function PaymentModal({ subtotal = 0, onClose, onComplete }) {
               </div>
             )}
 
-            {/* Captured GCash Receipt Photo Preview */}
             {!cameraActive && gcashImage && (
               <div className="gcash-captured-preview">
                 <div className="captured-header">

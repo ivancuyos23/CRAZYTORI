@@ -5,6 +5,8 @@ import {
   exportSalesReport,
   exportExpensesReport
 } from '../../services/exportHelper';
+import { showToast } from '../layout/UIFeedback';
+import { DEFAULT_INV_SETTINGS, loadInvSettings } from './InventoryControls';
 import './AdminViews.css';
 import './AdminSettingsView.css';
 
@@ -12,7 +14,6 @@ const PERMISSION_ITEMS = [
   { key: 'canVoidTransactions', title: 'Void Orders' },
   { key: 'canFilterTransactionDates', title: 'Filter Order Dates' },
   { key: 'canViewDSR', title: 'View DSR & P&L' },
-  { key: 'canViewUsage', title: 'View Daily Usage' },
   { key: 'canLogExpenses', title: 'Add Expenses' },
   { key: 'canDeleteExpenses', title: 'Delete Expenses' },
   { key: 'canManageMenu', title: 'Edit Menu' }
@@ -27,7 +28,13 @@ export default function AdminSettingsView({
   expenses = [],
   products = []
 }) {
-  const [cashFloat, setCashFloat] = useState(() => localStorage.getItem('crazy_tori_cash_float') || '1000');
+  const [cashFloat, setCashFloat] = useState(
+    () => localStorage.getItem('crazy_tori_cash_float') || '1000'
+  );
+
+  // Inventory REQ Alert Threshold Settings
+  const [invSettings, setInvSettings] = useState(() => loadInvSettings());
+
   const [currentPin, setCurrentPin] = useState('');
   const [newPin, setNewPin] = useState('');
   const [confirmPin, setConfirmPin] = useState('');
@@ -43,7 +50,6 @@ export default function AdminSettingsView({
       canVoidTransactions: isLead,
       canFilterTransactionDates: isLead,
       canViewDSR: isLead,
-      canViewUsage: isLead,
       canLogExpenses: isLead,
       canDeleteExpenses: false,
       canManageMenu: false
@@ -53,63 +59,78 @@ export default function AdminSettingsView({
   const handleSaveFloat = (e) => {
     e.preventDefault();
     localStorage.setItem('crazy_tori_cash_float', cashFloat);
-    alert(`Cash float saved: ₱${Number(cashFloat || 0).toFixed(2)}`);
+    showToast(`Cash float saved: ₱${Number(cashFloat || 0).toFixed(2)}`, 'success');
+  };
+
+  const handleSaveInvSettings = (e) => {
+    e.preventDefault();
+    const cleaned = {
+      ruleMode: invSettings.ruleMode || 'both',
+      pieceReqLimit: Math.max(0, Number(invSettings.pieceReqLimit) || 0),
+      weightGramsReqLimit: Math.max(0, Number(invSettings.weightGramsReqLimit) || 0),
+      weightKgReqLimit: Math.max(0, Number(invSettings.weightKgReqLimit) || 0),
+      percentReqLimit: Math.min(100, Math.max(1, Number(invSettings.percentReqLimit) || 50))
+    };
+    setInvSettings(cleaned);
+    localStorage.setItem('crazy_tori_inv_settings', JSON.stringify(cleaned));
+    showToast('Inventory REQ alert thresholds saved!', 'success');
   };
 
   const handlePinUpdate = async (e) => {
     e.preventDefault();
     setPinStatus({ type: '', msg: '' });
-    if (!/^\d{4}$/.test(newPin)) return setPinStatus({ type: 'error', msg: 'PIN must be 4 digits.' });
-    if (newPin !== confirmPin) return setPinStatus({ type: 'error', msg: 'PINs do not match.' });
+    if (!/^\d{4}$/.test(newPin)) {
+      return setPinStatus({ type: 'error', msg: 'PIN must be 4 digits.' });
+    }
+    if (newPin !== confirmPin) {
+      return setPinStatus({ type: 'error', msg: 'PINs do not match.' });
+    }
 
     try {
       await updateAdminPinAPI(currentPin, newPin);
       setPinStatus({ type: 'success', msg: 'PIN updated!' });
+      showToast('Admin PIN updated!', 'success');
       setCurrentPin('');
       setNewPin('');
       setConfirmPin('');
     } catch (err) {
-      setPinStatus({ type: 'error', msg: err.response?.data?.error || 'Incorrect current PIN.' });
+      setPinStatus({
+        type: 'error',
+        msg: err.response?.data?.error || 'Incorrect current PIN.'
+      });
     }
   };
-
-  const enabledCount = Object.values(permissions).filter(Boolean).length;
 
   return (
     <div className="admin-page-container">
       <div className="admin-header-bar">
-        <h2>Settings</h2>
-      </div>
-
-      <div className="expense-kpi-grid">
-        <div className="admin-kpi-card">
-          <span>Cashier Access</span>
-          <h3>{enabledCount} / {PERMISSION_ITEMS.length}</h3>
-        </div>
-        <div className="admin-kpi-card">
-          <span>Cash Float</span>
-          <h3>₱{Number(cashFloat || 0).toFixed(2)}</h3>
-        </div>
-        <div className="admin-kpi-card">
-          <span>Serving #</span>
-          <h3>#{servingNo}</h3>
-        </div>
-        <div className="admin-kpi-card kpi-highlight-outflow">
-          <span>Saved Records</span>
-          <h3>{transactions.length + expenses.length}</h3>
+        <div>
+          <h2>Settings</h2>
+          <p className="admin-subtitle">
+            Manage cashier permissions, register controls, inventory REQ thresholds, and backups
+          </p>
         </div>
       </div>
 
       <div className="admin-two-col">
         <div className="settings-stack">
+          {/* Card 1: Cashier Access */}
           <div className="admin-card report-sheet">
             <div className="report-sheet-header">
               <h3>Cashier Access</h3>
               <div className="preset-btn-group">
-                <button type="button" className="btn-secondary-sm" onClick={() => applyPreset('strict')}>
+                <button
+                  type="button"
+                  className="btn-secondary-sm"
+                  onClick={() => applyPreset('strict')}
+                >
                   Default
                 </button>
-                <button type="button" className="btn-secondary-sm" onClick={() => applyPreset('shiftLead')}>
+                <button
+                  type="button"
+                  className="btn-secondary-sm"
+                  onClick={() => applyPreset('shiftLead')}
+                >
                   All On
                 </button>
               </div>
@@ -134,6 +155,121 @@ export default function AdminSettingsView({
             </div>
           </div>
 
+          {/* Card 2: Inventory REQ Alert Rules (Pieces, Weight & Percentage) */}
+          <div className="admin-card report-sheet">
+            <div className="report-sheet-header">
+              <div>
+                <span className="report-tag">STOCK ALERT RULES</span>
+                <h3>📦 Inventory REQ Thresholds</h3>
+              </div>
+            </div>
+
+            <form onSubmit={handleSaveInvSettings} className="admin-form">
+              <div>
+                <label>When Should REQ Appear?</label>
+                <select
+                  value={invSettings.ruleMode}
+                  onChange={e =>
+                    setInvSettings({ ...invSettings, ruleMode: e.target.value })
+                  }
+                >
+                  <option value="both">
+                    Piece/Weight Limit OR Below {invSettings.percentReqLimit}% (Recommended)
+                  </option>
+                  <option value="threshold">
+                    Only By Piece / Weight Limit
+                  </option>
+                  <option value="percent">
+                    Only By Percentage (&lt; {invSettings.percentReqLimit}% of Start)
+                  </option>
+                </select>
+              </div>
+
+              <div className="form-split-row">
+                <div>
+                  <label>🔢 By Piece REQ Limit (pcs)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={invSettings.pieceReqLimit}
+                    onChange={e =>
+                      setInvSettings({ ...invSettings, pieceReqLimit: e.target.value })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label>📉 Low Stock % Rule (%)</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    value={invSettings.percentReqLimit}
+                    onChange={e =>
+                      setInvSettings({ ...invSettings, percentReqLimit: e.target.value })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div className="form-split-row">
+                <div>
+                  <label>⚖️ Weight Limit in Grams (g)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={invSettings.weightGramsReqLimit}
+                    onChange={e =>
+                      setInvSettings({
+                        ...invSettings,
+                        weightGramsReqLimit: e.target.value
+                      })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <label>⚖️ Weight Limit in Kilos (kg)</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="any"
+                    value={invSettings.weightKgReqLimit}
+                    onChange={e =>
+                      setInvSettings({
+                        ...invSettings,
+                        weightKgReqLimit: e.target.value
+                      })
+                    }
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
+                <button
+                  type="button"
+                  className="btn-secondary-sm"
+                  onClick={() => {
+                    setInvSettings(DEFAULT_INV_SETTINGS);
+                    localStorage.setItem(
+                      'crazy_tori_inv_settings',
+                      JSON.stringify(DEFAULT_INV_SETTINGS)
+                    );
+                    showToast('Reset REQ rules to defaults!', 'info');
+                  }}
+                >
+                  Reset
+                </button>
+                <button type="submit" className="btn-primary-amber" style={{ flex: 1 }}>
+                  ✓ Save REQ Thresholds
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* Card 3: Register Controls */}
           <div className="admin-card report-sheet">
             <div className="report-sheet-header">
               <h3>Register Controls</h3>
@@ -149,7 +285,9 @@ export default function AdminSettingsView({
                     value={cashFloat}
                     onChange={e => setCashFloat(e.target.value)}
                   />
-                  <button type="submit" className="btn-secondary-sm">Save</button>
+                  <button type="submit" className="btn-secondary-sm">
+                    Save
+                  </button>
                 </div>
               </form>
 
@@ -158,7 +296,10 @@ export default function AdminSettingsView({
                 <button
                   type="button"
                   className="btn-secondary-sm"
-                  onClick={() => setServingNo && setServingNo(1)}
+                  onClick={() => {
+                    if (setServingNo) setServingNo(1);
+                    showToast('Serving number reset to #1', 'info');
+                  }}
                 >
                   ↺ Reset to #1
                 </button>
@@ -168,7 +309,7 @@ export default function AdminSettingsView({
         </div>
 
         <div className="settings-stack">
-          {/* Branded PDF & Excel Backups */}
+          {/* Card 4: Backups & Exports */}
           <div className="admin-card report-sheet">
             <div className="report-sheet-header">
               <h3>Backups & Exports</h3>
@@ -185,14 +326,18 @@ export default function AdminSettingsView({
                   <button
                     type="button"
                     className="btn-primary-amber"
-                    onClick={() => exportFullBackupReport({ transactions, expenses, products }, 'pdf')}
+                    onClick={() =>
+                      exportFullBackupReport({ transactions, expenses, products }, 'pdf')
+                    }
                   >
                     📄 PDF
                   </button>
                   <button
                     type="button"
                     className="btn-secondary-sm"
-                    onClick={() => exportFullBackupReport({ transactions, expenses, products }, 'excel')}
+                    onClick={() =>
+                      exportFullBackupReport({ transactions, expenses, products }, 'excel')
+                    }
                   >
                     📊 Excel
                   </button>
@@ -247,6 +392,7 @@ export default function AdminSettingsView({
             </div>
           </div>
 
+          {/* Card 5: Change Admin PIN */}
           <div className="admin-card report-sheet">
             <div className="report-sheet-header">
               <h3>Change Admin PIN</h3>
@@ -285,7 +431,9 @@ export default function AdminSettingsView({
                   />
                 </div>
               </div>
-              {pinStatus.msg && <div className={`pin-alert ${pinStatus.type}`}>{pinStatus.msg}</div>}
+              {pinStatus.msg && (
+                <div className={`pin-alert ${pinStatus.type}`}>{pinStatus.msg}</div>
+              )}
               <button type="submit" className="btn-primary-amber" style={{ marginTop: '6px' }}>
                 Update PIN
               </button>
